@@ -1,31 +1,53 @@
-"use client"
-import { Card, CardHeader, CardPreview, Button, Text, Dialog, DialogTrigger, DialogSurface, DialogTitle, DialogBody, DialogActions, DialogContent } from '@fluentui/react-components'
-import { Asset } from '@/src/lib/types'
-import { formatCurrency } from '@/src/lib/utils'
-import { deleteAsset } from '@/src/lib/store'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { Edit24Regular, Delete24Regular } from '@fluentui/react-icons'
+'use client';
+import {
+  Card,
+  CardHeader,
+  Text,
+  ProgressBar,
+} from '@fluentui/react-components';
+import { Asset } from '@/src/lib/types';
+import {
+  formatCurrency,
+  weeksBetween,
+  calculateTotalInvested,
+  calculateDailyDepreciation,
+} from '@/src/lib/utils';
+import { useRouter } from 'next/navigation';
 
-export default function AssetCard({ asset, currentValue, onDelete, onEdit }: { asset: Asset; currentValue: number; onDelete?: () => void; onEdit?: (id: string) => void }) {
-  const router = useRouter()
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+export default function AssetCard({
+  asset,
+  currentValue,
+}: {
+  asset: Asset;
+  currentValue: number;
+}) {
+  const router = useRouter();
 
-  const handleEdit = (event: React.MouseEvent) => {
-    event.stopPropagation()
-    if (onEdit) {
-      onEdit(asset.id)
-    } else {
-      router.push(`/assets/edit/${asset.id}` as any)
-    }
-  }
+  // Calculate remaining life percentage
+  const ageWeeks = weeksBetween(asset.purchaseDate);
+  const remainingPercentage = Math.max(
+    0,
+    100 - (ageWeeks / asset.expectedLifeWeeks) * 100,
+  );
 
-  const handleDelete = () => {
-    deleteAsset(asset.id)
-    setDeleteDialogOpen(false)
-    if (onDelete) onDelete()
-    router.refresh()
-  }
+  // Calculate remaining life end date
+  const purchaseDate = new Date(asset.purchaseDate);
+  const endDate = new Date(
+    purchaseDate.getTime() + asset.expectedLifeWeeks * 7 * 24 * 60 * 60 * 1000,
+  );
+  const remainingDateText = endDate.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+
+  // Calculate value progress percentage
+  const totalInvested = calculateTotalInvested(asset);
+  const valueProgressPercentage =
+    totalInvested > 0 ? (currentValue / totalInvested) * 100 : 0;
+
+  // Calculate daily cost (depreciation per day)
+  const dailyCost = calculateDailyDepreciation(asset);
 
   return (
     <Card
@@ -33,15 +55,18 @@ export default function AssetCard({ asset, currentValue, onDelete, onEdit }: { a
         cursor: 'pointer',
         position: 'relative',
         borderRadius: 16,
-        padding: '12px 16px',
+        padding: '16px',
         overflow: 'hidden',
+        backgroundColor: 'var(--colorNeutralBackground3)',
+        transition: 'transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out',
         ...(asset.photoDataUrl && {
           backgroundImage: `url(${asset.photoDataUrl})`,
           backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        })
+          backgroundPosition: 'center',
+        }),
       }}
       onClick={() => router.push(`/assets/${asset.id}` as any)}
+      className="asset-card"
     >
       {asset.photoDataUrl && (
         <div
@@ -52,69 +77,83 @@ export default function AssetCard({ asset, currentValue, onDelete, onEdit }: { a
             right: 0,
             bottom: 0,
             backdropFilter: 'blur(20px)',
-            backgroundColor: 'rgba(255, 255, 255, 0.85)',
-            zIndex: 0
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            zIndex: 0,
           }}
         />
       )}
       <div style={{ position: 'relative', zIndex: 1 }}>
+        {asset.photoDataUrl && (
+          <div style={{ textAlign: 'center', marginBottom: 12 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={asset.photoDataUrl}
+              alt={asset.name}
+              style={{
+                width: 80,
+                height: 80,
+                objectFit: 'cover',
+                borderRadius: '50%',
+                border: '3px solid var(--colorNeutralBackground3)',
+              }}
+            />
+          </div>
+        )}
         <CardHeader
           header={
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-              <Text weight="semibold">{asset.name}</Text>
-              <div style={{ display: 'flex', gap: 4 }}>
-                <Button
-                  aria-label="Edit"
-                  icon={<Edit24Regular />}
-                  appearance="subtle"
-                  size="medium"
-                  onClick={handleEdit}
-                />
-                <Dialog open={deleteDialogOpen} onOpenChange={(_, data) => setDeleteDialogOpen(data.open)}>
-                  <DialogTrigger disableButtonEnhancement>
-                    <Button
-                      aria-label="Delete"
-                      icon={<Delete24Regular />}
-                      appearance="subtle"
-                      size="medium"
-                      onClick={(event: React.MouseEvent) => event.stopPropagation()}
-                    />
-                  </DialogTrigger>
-                  <DialogSurface>
-                    <DialogBody>
-                      <DialogTitle>Delete Asset?</DialogTitle>
-                      <DialogContent>
-                        Are you sure you want to delete <strong>{asset.name}</strong>? This action cannot be undone.
-                      </DialogContent>
-                      <DialogActions>
-                        <DialogTrigger disableButtonEnhancement>
-                          <Button appearance="secondary" onClick={(event: React.MouseEvent) => event.stopPropagation()}>Cancel</Button>
-                        </DialogTrigger>
-                        <Button appearance="primary" onClick={(event: React.MouseEvent) => { event.stopPropagation(); handleDelete(); }}>Delete</Button>
-                      </DialogActions>
-                    </DialogBody>
-                  </DialogSurface>
-                </Dialog>
-              </div>
+            <div style={{ textAlign: 'center' }}>
+              <Text
+                weight="semibold"
+                size={500}
+                style={{ display: 'block', marginBottom: 4 }}
+              >
+                {asset.name}
+              </Text>
+              <Text
+                size={300}
+                style={{
+                  color: 'var(--colorNeutralForeground3)',
+                  display: 'block',
+                }}
+              >
+                {asset.description || 'No description'}
+              </Text>
             </div>
           }
-          description={asset.tags.length ? asset.tags.join(', ') : undefined}
         />
-        {asset.photoDataUrl && (
-          <CardPreview>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={asset.photoDataUrl} alt={asset.name} style={{ width: '100%', objectFit: 'cover', maxHeight: 200, borderRadius: 8, margin: '8px 0' }} />
-          </CardPreview>
-        )}
-        <div style={{ padding: 8 }}>
-          <Text size={300}>{asset.description}</Text>
-          <div style={{ marginTop: 8 }}>
-            <Text size={200}>Purchase: {formatCurrency(asset.purchaseValue)}</Text>
-            <br />
-            <Text size={200}>Current: {formatCurrency(currentValue)}</Text>
+        <div style={{ textAlign: 'center', marginTop: 8 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
+              gap: '8px',
+              marginBottom: 8,
+            }}
+          >
+            <Text size={700} weight="bold">
+              {formatCurrency(currentValue)}
+            </Text>
+            <Text
+              size={300}
+              style={{ color: 'var(--colorNeutralForeground3)' }}
+            >
+              ({formatCurrency(dailyCost)}/day)
+            </Text>
           </div>
+          <div style={{ marginBottom: 8 }}>
+            <ProgressBar
+              value={valueProgressPercentage}
+              max={100}
+              style={{ height: 6, borderRadius: 3 }}
+            />
+          </div>
+          <Text size={200} style={{ color: 'var(--colorNeutralForeground3)' }}>
+            {Math.round(remainingPercentage)}% lifetime remaining (
+            {remainingDateText})
+          </Text>
         </div>
       </div>
     </Card>
-  )
+  );
 }

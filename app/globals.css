@@ -1,10 +1,15 @@
 /* Basic reset and layout helpers */
-html, body {
+html,
+body {
   padding: 0;
   margin: 0;
+  background-color: #000000; /* Pure black background for dark mode */
+  color: #eeeeee; /* #eee text color */
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 .container {
   max-width: 1200px;
@@ -16,4 +21,23 @@ html, body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
+}
+
+/* Dark mode styles */
+@media (prefers-color-scheme: dark) {
+  html,
+  body {
+    background-color: #000000;
+    color: #eeeeee;
+  }
+}
+
+/* Asset card hover effects */
+.asset-card:hover {
+  transform: scale(1.025);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.asset-card:active {
+  transform: scale(0.99);
 }

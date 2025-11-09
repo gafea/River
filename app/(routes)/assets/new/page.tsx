@@ -1,6 +1,6 @@
-"use client"
-import AssetForm from '@/src/components/AssetForm'
-import { Text } from '@fluentui/react-components'
+'use client';
+import AssetForm from '@/src/components/AssetForm';
+import { Text } from '@fluentui/react-components';
 
 export default function NewAssetPage() {
   return (
@@ -10,5 +10,5 @@ export default function NewAssetPage() {
       </Text>
       <AssetForm />
     </main>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-# Asset Manager (Next.js + Fluent UI)
+# River (Next.js + Fluent UI)
 
 A lightweight client-side asset management dashboard demonstrating:
 
@@ -11,14 +11,14 @@ A lightweight client-side asset management dashboard demonstrating:
 
 ## Features
 
-| Feature | Status |
-|---------|--------|
-| Add new asset with details & photo | ✅ |
-| Dashboard grid of cards | ✅ (initial) |
-| Tag filter | ✅ (via sidebar) |
-| Linear depreciation (straight-line) | ✅ |
-| Edit / Delete actions | ✅ |
-| Tests for utils | ✅ |
+| Feature                             | Status           |
+| ----------------------------------- | ---------------- |
+| Add new asset with details & photo  | ✅               |
+| Dashboard grid of cards             | ✅ (initial)     |
+| Tag filter                          | ✅ (via sidebar) |
+| Linear depreciation (straight-line) | ✅               |
+| Edit / Delete actions               | ✅               |
+| Tests for utils                     | ✅               |
 
 ## Data Model
 
@@ -35,7 +35,7 @@ Asset {
 }
 ```
 
-Current value = max(0, purchaseValue - (purchaseValue / expectedLifeWeeks) * ageWeeks)
+Current value = max(0, purchaseValue - (purchaseValue / expectedLifeWeeks) \* ageWeeks)
 
 ## Getting Started
 
