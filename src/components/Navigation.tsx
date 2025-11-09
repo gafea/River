@@ -4,8 +4,9 @@ import { Button, Text } from '@fluentui/react-components'
 import { Add24Regular, Tag24Regular, Home24Regular } from '@fluentui/react-icons'
 import { getAllAssets } from '@/src/lib/store'
 import { groupAssetsByTag } from '@/src/lib/utils'
+import { Suspense } from 'react'
 
-export default function Navigation() {
+function NavigationContent() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -43,14 +44,10 @@ export default function Navigation() {
       </Button>
 
       <Button
-        appearance="subtle"
+        appearance={isActivePath('/dashboard') && !activeTag ? 'primary' : 'subtle'}
         icon={<Home24Regular />}
         onClick={() => router.push('/dashboard')}
-        style={{
-          justifyContent: 'flex-start',
-          backgroundColor: isActivePath('/dashboard') && !activeTag ? 'rgba(15, 111, 255, 0.15)' : undefined,
-          color: isActivePath('/dashboard') && !activeTag ? 'rgb(15, 111, 255)' : undefined,
-        }}
+        style={{ justifyContent: 'flex-start' }}
       >
         All Assets
       </Button>
@@ -64,14 +61,10 @@ export default function Navigation() {
       {tags.map((tag) => (
         <Button
           key={tag}
-          appearance="subtle"
+          appearance={activeTag === tag ? 'primary' : 'subtle'}
           icon={<Tag24Regular />}
           onClick={() => router.push(`/dashboard?tag=${encodeURIComponent(tag)}`)}
-          style={{
-            justifyContent: 'flex-start',
-            backgroundColor: activeTag === tag ? 'rgba(15, 111, 255, 0.15)' : undefined,
-            color: activeTag === tag ? 'rgb(15, 111, 255)' : undefined,
-          }}
+          style={{ justifyContent: 'flex-start' }}
         >
           {tag} ({grouped[tag].length})
         </Button>
@@ -83,5 +76,13 @@ export default function Navigation() {
         </Text>
       )}
     </nav>
+  )
+}
+
+export default function Navigation() {
+  return (
+    <Suspense fallback={<div>Loading navigation...</div>}>
+      <NavigationContent />
+    </Suspense>
   )
 }

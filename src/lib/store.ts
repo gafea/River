@@ -56,21 +56,21 @@ function seed(): Asset[] {
   const demo: Asset[] = [
     {
       id: crypto.randomUUID(),
-      name: 'MacBook Pro 14"',
-      description: 'Developer laptop',
-      purchaseValue: 2400,
-      expectedLifeWeeks: 208, // ~4 years
-      purchaseDate: iso(new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())),
-      tags: ['IT', 'Laptop']
+      name: 'Dell Inspiron 5477',
+      description: '',
+      purchaseValue: 8299,
+      expectedLifeWeeks: 626,
+      purchaseDate: iso(new Date(2018, 7 - 1, 11)),
+      tags: ['PC']
     },
     {
       id: crypto.randomUUID(),
-      name: 'Office Chair',
-      description: 'Ergonomic chair',
-      purchaseValue: 350,
-      expectedLifeWeeks: 312, // ~6 years
-      purchaseDate: iso(new Date(today.getFullYear() - 2, today.getMonth(), today.getDate())),
-      tags: ['Furniture']
+      name: 'iPhone 16 Pro',
+      description: '',
+      purchaseValue: 7721,
+      expectedLifeWeeks: 260,
+      purchaseDate: iso(new Date(2025, 9 - 1, 11)),
+      tags: ['iPhone']
     }
   ]
   write(demo)

@@ -7,8 +7,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Text, Dialog, DialogTrigger, DialogSurface, DialogBody, DialogTitle, DialogContent, DialogActions, Button } from '@fluentui/react-components'
 import AssetForm, { type AssetFormHandle } from '@/src/components/AssetForm'
 import { Save24Filled, Dismiss24Filled } from '@fluentui/react-icons'
+import { Suspense } from 'react'
 
-export default function DashboardPage() {
+function DashboardContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const tagFromUrl = searchParams.get('tag')
@@ -127,5 +128,13 @@ export default function DashboardPage() {
         </DialogSurface>
       </Dialog>
     </main>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div>Loading dashboard...</div>}>
+      <DashboardContent />
+    </Suspense>
   )
 }

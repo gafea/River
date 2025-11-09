@@ -1,3 +1,9 @@
+export type AssetEvent = {
+  date: string // ISO date
+  amount: number // positive for addition, negative for deduction
+  description?: string
+}
+
 export type Asset = {
   id: string
   name: string
@@ -7,4 +13,6 @@ export type Asset = {
   expectedLifeWeeks: number
   purchaseDate: string // ISO date string
   tags: string[]
+  terminalPrice?: number
+  events?: AssetEvent[]
 }

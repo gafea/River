@@ -11,7 +11,8 @@ export default function AssetCard({ asset, currentValue, onDelete, onEdit }: { a
   const router = useRouter()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
-  const handleEdit = () => {
+  const handleEdit = (event: React.MouseEvent) => {
+    event.stopPropagation()
     if (onEdit) {
       onEdit(asset.id)
     } else {
@@ -29,6 +30,7 @@ export default function AssetCard({ asset, currentValue, onDelete, onEdit }: { a
   return (
     <Card
       style={{
+        cursor: 'pointer',
         position: 'relative',
         borderRadius: 16,
         padding: '12px 16px',
@@ -39,6 +41,7 @@ export default function AssetCard({ asset, currentValue, onDelete, onEdit }: { a
           backgroundPosition: 'center'
         })
       }}
+      onClick={() => router.push(`/assets/${asset.id}` as any)}
     >
       {asset.photoDataUrl && (
         <div
@@ -74,6 +77,7 @@ export default function AssetCard({ asset, currentValue, onDelete, onEdit }: { a
                       icon={<Delete24Regular />}
                       appearance="subtle"
                       size="medium"
+                      onClick={(event: React.MouseEvent) => event.stopPropagation()}
                     />
                   </DialogTrigger>
                   <DialogSurface>
@@ -84,9 +88,9 @@ export default function AssetCard({ asset, currentValue, onDelete, onEdit }: { a
                       </DialogContent>
                       <DialogActions>
                         <DialogTrigger disableButtonEnhancement>
-                          <Button appearance="secondary">Cancel</Button>
+                          <Button appearance="secondary" onClick={(event: React.MouseEvent) => event.stopPropagation()}>Cancel</Button>
                         </DialogTrigger>
-                        <Button appearance="primary" onClick={handleDelete}>Delete</Button>
+                        <Button appearance="primary" onClick={(event: React.MouseEvent) => { event.stopPropagation(); handleDelete(); }}>Delete</Button>
                       </DialogActions>
                     </DialogBody>
                   </DialogSurface>

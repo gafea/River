@@ -1,9 +1,10 @@
 "use client"
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { addAsset, updateAsset } from '@/src/lib/store'
-import { Asset } from '@/src/lib/types'
-import { Input, Textarea, Field, Card } from '@fluentui/react-components'
+import { Asset, AssetEvent } from '@/src/lib/types'
+import { Input, Textarea, Field, Card, Button, Table, TableHeader, TableHeaderCell, TableBody, TableRow, TableCell } from '@fluentui/react-components'
 import { useRouter } from 'next/navigation'
+import { Add24Regular, Delete24Regular } from '@fluentui/react-icons'
 
 export type AssetFormHandle = { submit: () => void; isValid: boolean }
 
@@ -25,6 +26,8 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm({ asset, on
     const [purchaseDate, setPurchaseDate] = useState<string>(new Date().toISOString().slice(0, 10))
     const [tags, setTags] = useState<string>('')
     const [photoDataUrl, setPhotoDataUrl] = useState<string | undefined>(undefined)
+    const [terminalPrice, setTerminalPrice] = useState<number>(0)
+    const [events, setEvents] = useState<AssetEvent[]>([])
 
     const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -55,6 +58,8 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm({ asset, on
             setPurchaseDate(asset.purchaseDate)
             setTags(asset.tags.join(', '))
             setPhotoDataUrl(asset.photoDataUrl)
+            setTerminalPrice(asset.terminalPrice ?? 0)
+            setEvents(asset.events || [])
             // Ensure validation runs after asset data is populated
             validate({
                 name: asset.name,
@@ -88,7 +93,9 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm({ asset, on
             expectedLifeWeeks: Number(expectedLifeWeeks),
             purchaseDate,
             tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-            photoDataUrl
+            photoDataUrl,
+            terminalPrice: terminalPrice > 0 ? terminalPrice : undefined,
+            events: events.length > 0 ? events : undefined
         }
 
         try {
@@ -137,6 +144,127 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm({ asset, on
             </Field>
             <Field label="Tags (comma separated)">
                 <Input value={tags} onChange={(_, d) => setTags(d.value)} placeholder="e.g. IT, Laptop" />
+            </Field>
+            <Field label="Terminal Price (optional)">
+                <Input type="number" value={terminalPrice.toString()} onChange={(_, d) => setTerminalPrice(Number(d.value))} placeholder="Leave 0 for full depreciation" />
+            </Field>
+            <Field label="Events">
+                <Card style={{ padding: '16px' }}>
+                    <div style={{ marginBottom: '12px' }}>
+                        <Button
+                            icon={<Add24Regular />}
+                            onClick={() => setEvents([...events, { date: new Date().toISOString().slice(0, 10), amount: 0, description: '' }])}
+                        >
+                            Add Event
+                        </Button>
+                    </div>
+                    {events.length > 0 && (
+                        <div style={{ border: '1px solid #e1e5e9', borderRadius: '4px', overflow: 'hidden' }}>
+                            <Table style={{ borderCollapse: 'collapse' }}>
+                                <TableHeader>
+                                    <TableRow style={{ backgroundColor: '#f8f9fa' }}>
+                                        <TableHeaderCell style={{ border: '1px solid #e1e5e9', padding: '8px', fontWeight: '600', width: '140px' }}>Date</TableHeaderCell>
+                                        <TableHeaderCell style={{ border: '1px solid #e1e5e9', padding: '8px', fontWeight: '600', width: '100px' }}>Amount</TableHeaderCell>
+                                        <TableHeaderCell style={{ border: '1px solid #e1e5e9', padding: '8px', fontWeight: '600' }}>Description</TableHeaderCell>
+                                        <TableHeaderCell style={{ border: '1px solid #e1e5e9', padding: '8px', fontWeight: '600', width: '80px', textAlign: 'center' }}>Actions</TableHeaderCell>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {events.map((event, index) => (
+                                        <TableRow key={index} style={{ backgroundColor: index % 2 === 0 ? '#ffffff' : '#fafbfc' }}>
+                                            <TableCell style={{ border: '1px solid #e1e5e9', padding: '0', margin: '0' }}>
+                                                <Input
+                                                    type="date"
+                                                    value={event.date}
+                                                    onChange={(_, d) => {
+                                                        const newEvents = [...events]
+                                                        newEvents[index].date = d.value
+                                                        setEvents(newEvents)
+                                                    }}
+                                                    style={{
+                                                        border: 'none',
+                                                        borderRadius: '0',
+                                                        backgroundColor: 'transparent',
+                                                        padding: '8px',
+                                                        width: '100%',
+                                                        fontSize: '14px',
+                                                        outline: 'none',
+                                                        boxShadow: 'none'
+                                                    }}
+                                                />
+                                            </TableCell>
+                                            <TableCell style={{ border: '1px solid #e1e5e9', padding: '0', margin: '0' }}>
+                                                <Input
+                                                    type="number"
+                                                    value={event.amount.toString()}
+                                                    onChange={(_, d) => {
+                                                        const newEvents = [...events]
+                                                        newEvents[index].amount = Number(d.value)
+                                                        setEvents(newEvents)
+                                                    }}
+                                                    style={{
+                                                        border: 'none',
+                                                        borderRadius: '0',
+                                                        backgroundColor: 'transparent',
+                                                        padding: '8px',
+                                                        width: '100%',
+                                                        fontSize: '14px',
+                                                        outline: 'none',
+                                                        boxShadow: 'none',
+                                                        textAlign: 'right'
+                                                    }}
+                                                />
+                                            </TableCell>
+                                            <TableCell style={{ border: '1px solid #e1e5e9', padding: '0', margin: '0' }}>
+                                                <Input
+                                                    value={event.description || ''}
+                                                    onChange={(_, d) => {
+                                                        const newEvents = [...events]
+                                                        newEvents[index].description = d.value
+                                                        setEvents(newEvents)
+                                                    }}
+                                                    placeholder="Optional description"
+                                                    style={{
+                                                        border: 'none',
+                                                        borderRadius: '0',
+                                                        backgroundColor: 'transparent',
+                                                        padding: '8px',
+                                                        width: '100%',
+                                                        fontSize: '14px',
+                                                        outline: 'none',
+                                                        boxShadow: 'none'
+                                                    }}
+                                                />
+                                            </TableCell>
+                                            <TableCell style={{ border: '1px solid #e1e5e9', padding: '4px', margin: '0', textAlign: 'center' }}>
+                                                <Button
+                                                    icon={<Delete24Regular />}
+                                                    appearance="subtle"
+                                                    size="small"
+                                                    onClick={() => {
+                                                        const newEvents = events.filter((_, i) => i !== index)
+                                                        setEvents(newEvents)
+                                                    }}
+                                                    style={{
+                                                        minWidth: 'auto',
+                                                        padding: '4px',
+                                                        border: 'none',
+                                                        backgroundColor: 'transparent'
+                                                    }}
+                                                />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    )}
+                    {events.length === 0 && (
+                        <div style={{ textAlign: 'center', color: '#666', padding: '20px', border: '1px solid #e1e5e9', borderRadius: '4px' }}>
+                            No events added yet. Click "Add Event" to add your first event.
+                        </div>
+                    )}
+                </Card>
             </Field>
             <Field label="Photo">
                 <input type="file" accept="image/*" onChange={handlePhoto} style={{ display: 'block' }} />

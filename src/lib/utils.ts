@@ -9,11 +9,32 @@ export function weeksBetween(startISO: string, end: Date = new Date()): number {
 
 export function calculateCurrentValue(asset: Asset, asOf: Date = new Date()): number {
   const ageWeeks = weeksBetween(asset.purchaseDate, asOf)
-  const depPerWeek = asset.expectedLifeWeeks > 0 ? asset.purchaseValue / asset.expectedLifeWeeks : asset.purchaseValue
-  const depreciation = depPerWeek * ageWeeks
-  const current = Math.max(0, asset.purchaseValue - depreciation)
+  const terminal = asset.terminalPrice ?? 0
+  const depPerWeek = asset.expectedLifeWeeks > 0 ? (asset.purchaseValue - terminal) / asset.expectedLifeWeeks : 0
+  const depreciation = depPerWeek * Math.min(ageWeeks, asset.expectedLifeWeeks)
+  let current = asset.purchaseValue - depreciation
+  if (ageWeeks >= asset.expectedLifeWeeks) {
+    current = terminal
+  }
+
+  // Add events with depreciation
+  if (asset.events) {
+    for (const event of asset.events) {
+      const eventDate = new Date(event.date)
+      if (eventDate <= asOf) {
+        const eventAgeWeeks = weeksBetween(event.date, asOf)
+        // All events depreciate over the remaining life of the asset from when they were added
+        const remainingWeeksAtEvent = Math.max(0, asset.expectedLifeWeeks - weeksBetween(asset.purchaseDate, eventDate))
+        const eventDepPerWeek = remainingWeeksAtEvent > 0 ? event.amount / remainingWeeksAtEvent : 0
+        const eventDepreciation = eventDepPerWeek * Math.min(eventAgeWeeks, remainingWeeksAtEvent)
+        const currentEventValue = event.amount - eventDepreciation
+        current += currentEventValue
+      }
+    }
+  }
+
   // Round to 2 decimals for display stability
-  return Math.round(current * 100) / 100
+  return Math.round(Math.max(terminal, current) * 100) / 100
 }
 
 export function groupAssetsByTag(assets: Asset[]): Record<string, Asset[]> {
