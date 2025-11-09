@@ -2,14 +2,9 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getAllAssets } from '@/src/lib/store';
-import {
-  calculateCurrentValue,
-  calculateDailyDepreciation,
-} from '@/src/lib/utils';
+import { calculateCurrentValue } from '@/src/lib/utils';
 import AssetCard from '@/src/components/AssetCard';
 import { Text, Input, InputOnChangeData } from '@fluentui/react-components';
-import { ArrowLeft24Regular } from '@fluentui/react-icons';
-import { Button } from '@fluentui/react-components';
 import { Suspense } from 'react';
 
 function SearchContent() {
@@ -72,11 +67,19 @@ function SearchContent() {
 
   return (
     <main className="container">
-      <Text as="h1" size={800} weight="semibold">
-        Search Assets
-      </Text>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Text as="h1" size={800} weight="semibold">
+          Search Assets
+        </Text>
+      </div>
 
-      <div style={{ marginTop: 24, marginBottom: 32 }}>
+      <div style={{ marginTop: 12, marginBottom: 32 }}>
         <Input
           placeholder="Search by asset name or description..."
           value={searchTerm}

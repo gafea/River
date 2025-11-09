@@ -99,3 +99,7 @@ export function deleteAsset(id: string) {
   const all = getAllAssets();
   write(all.filter((a) => a.id !== id));
 }
+
+export function clearAllAssets() {
+  write([]);
+}

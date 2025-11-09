@@ -26,7 +26,8 @@ A comprehensive client-side asset management dashboard demonstrating modern web 
 | Terminal value (salvage price)        | ✅               |
 | Event tracking (investments/expenses) | ✅               |
 | Photo attachments (base64)            | ✅               |
-| Comprehensive test suite              | ✅ (20 tests)    |
+| Bulk import/export (JSON)             | ✅               |
+| Comprehensive test suite              | ✅ (29 tests)    |
 
 ## Advanced Features
 
@@ -34,10 +35,35 @@ A comprehensive client-side asset management dashboard demonstrating modern web 
 - **Event System**: Track additional investments and expenses that depreciate over remaining asset life
 - **Terminal Value**: Assets depreciate to a minimum salvage/residual value instead of $0
 - **Search Functionality**: Real-time search and filtering across asset names, descriptions, and tags
+- **Bulk Import/Export**: JSON-based import/export with confirmation dialogs for data safety
 - **Responsive Design**: Mobile-friendly interface using Fluent UI components
 - **Data Persistence**: Client-side localStorage with error handling and demo data seeding
 
-## Data Model
+## Bulk Import/Export
+
+The application supports JSON-based bulk import and export of all assets:
+
+### Export
+
+- Click "Export All" button on the dashboard
+- Downloads a JSON file with timestamp (e.g., `assets-export-2025-11-09.json`)
+- Contains all asset data including events, photos, and metadata
+
+### Import
+
+- Click "Import" button on the dashboard
+- Select a JSON file exported from this application
+- Choose import strategy:
+  - **Clear & Import**: Removes all existing assets and imports with original IDs
+  - **Merge (Keep Existing)**: Adds imported assets with new IDs to avoid conflicts
+- Includes validation and error handling for malformed files
+
+### Safety Features
+
+- Confirmation dialog prevents accidental data loss
+- File format validation ensures data integrity
+- ID conflict resolution when merging data
+- User feedback for successful imports and errors
 
 ### Asset
 
@@ -134,7 +160,6 @@ The depreciation engine handles complex scenarios:
 
 - Server persistence (REST or tRPC)
 - Authentication & multi-user separation
-- Bulk import/export (CSV, JSON)
 - Advanced depreciation methods (declining balance, units of production)
 - Asset categories and custom fields
 - Maintenance scheduling and cost tracking

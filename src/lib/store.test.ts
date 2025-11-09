@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { getAllAssets, addAsset, updateAsset, deleteAsset } from './store';
+import {
+  getAllAssets,
+  addAsset,
+  updateAsset,
+  deleteAsset,
+  clearAllAssets,
+} from './store';
 import type { Asset } from './types';
 
 // Mock localStorage
@@ -194,5 +200,36 @@ describe('store', () => {
     expect(addedAsset1.id).not.toBe('');
     expect(addedAsset2.id).not.toBe('');
     expect(addedAsset1.id).not.toBe(addedAsset2.id);
+  });
+
+  it('clears all assets', () => {
+    const assets: Asset[] = [
+      {
+        id: '1',
+        name: 'Asset 1',
+        purchaseValue: 100,
+        expectedLifeWeeks: 10,
+        purchaseDate: '2023-01-01',
+        tags: [],
+      },
+      {
+        id: '2',
+        name: 'Asset 2',
+        purchaseValue: 200,
+        expectedLifeWeeks: 20,
+        purchaseDate: '2023-01-01',
+        tags: [],
+      },
+    ];
+
+    localStorageMock.getItem.mockImplementation((key) => {
+      if (key === 'assets.v1') return JSON.stringify(assets);
+      if (key === 'assets.initialized') return 'true';
+      return null;
+    });
+
+    clearAllAssets();
+
+    expect(localStorageMock.setItem).toHaveBeenCalledWith('assets.v1', '[]');
   });
 });

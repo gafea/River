@@ -4,7 +4,7 @@ import {
   calculateCurrentValue,
   calculateDailyDepreciation,
 } from '@/src/lib/utils';
-import { getAllAssets } from '@/src/lib/store';
+import { getAllAssets, addAsset, clearAllAssets } from '@/src/lib/store';
 import AssetCard from '@/src/components/AssetCard';
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -18,7 +18,12 @@ import {
   Button,
 } from '@fluentui/react-components';
 import AssetForm, { type AssetFormHandle } from '@/src/components/AssetForm';
-import { Save24Filled, Dismiss24Filled } from '@fluentui/react-icons';
+import {
+  Save24Filled,
+  Dismiss24Filled,
+  ArrowDownload24Filled,
+  ArrowUpload24Filled,
+} from '@fluentui/react-icons';
 import { Suspense } from 'react';
 import type { Asset } from '@/src/lib/types';
 
@@ -35,6 +40,9 @@ function DashboardContent() {
   const [newValid, setNewValid] = useState(false);
   const [editValid, setEditValid] = useState(false);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importedAssets, setImportedAssets] = useState<Asset[]>([]);
 
   const grouped = groupAssetsByTag(assets);
   const assetToEdit = useMemo(
@@ -66,6 +74,85 @@ function DashboardContent() {
     closeDialogs();
   };
 
+  const handleExportAll = useCallback(() => {
+    const allAssets = getAllAssets();
+    const dataStr = JSON.stringify(allAssets, null, 2);
+    const dataUri =
+      'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
+    const exportFileDefaultName = `assets-export-${new Date().toISOString().slice(0, 10)}.json`;
+
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  }, []);
+
+  const handleImportAll = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const importedAssets = JSON.parse(
+            e.target?.result as string,
+          ) as Asset[];
+          // Validate that it's an array of assets
+          if (!Array.isArray(importedAssets)) {
+            alert('Invalid file format. Expected an array of assets.');
+            return;
+          }
+
+          setImportedAssets(importedAssets);
+          setImportDialogOpen(true);
+        } catch (error) {
+          alert('Failed to import assets. Please check the file format.');
+          console.error('Import error:', error);
+        }
+      };
+      reader.readAsText(file);
+
+      // Reset the input
+      event.target.value = '';
+    },
+    [],
+  );
+
+  const handleImportConfirm = useCallback(
+    (clearCurrent: boolean) => {
+      if (clearCurrent) {
+        clearAllAssets();
+      }
+
+      importedAssets.forEach((asset) => {
+        if (clearCurrent) {
+          // Keep original IDs when clearing current data
+          addAsset(asset);
+        } else {
+          // Generate new IDs to avoid conflicts when merging
+          const { id, ...assetWithoutId } = asset;
+          addAsset(assetWithoutId);
+        }
+      });
+
+      setRefreshKey((prev) => prev + 1);
+      setImportDialogOpen(false);
+      setImportedAssets([]);
+    },
+    [importedAssets],
+  );
+
+  const handleImportCancel = useCallback(() => {
+    setImportDialogOpen(false);
+    setImportedAssets([]);
+  }, []);
+
   const visibleAssets = useMemo(() => {
     let assetsToShow = activeTag ? grouped[activeTag] || [] : assets;
 
@@ -81,9 +168,27 @@ function DashboardContent() {
 
   return (
     <main className="container" key={refreshKey}>
-      <Text as="h1" size={800} weight="semibold" style={{ marginBottom: 24 }}>
-        {activeTag ? `${activeTag}` : 'All Assets'}
-      </Text>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Text as="h1" size={800} weight="semibold">
+          {activeTag ? `${activeTag}` : 'All Assets'}
+        </Text>
+        {!activeTag && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button icon={<ArrowDownload24Filled />} onClick={handleExportAll}>
+              Export All
+            </Button>
+            <Button icon={<ArrowUpload24Filled />} onClick={handleImportAll}>
+              Import
+            </Button>
+          </div>
+        )}
+      </div>
 
       {activeTag ? (
         <div className="grid" style={{ marginTop: 12 }}>
@@ -118,6 +223,15 @@ function DashboardContent() {
           </section>
         ))
       )}
+
+      {/* Hidden file input for import */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept=".json"
+        style={{ display: 'none' }}
+      />
 
       {/* Create New Dialog */}
       <Dialog
@@ -219,6 +333,49 @@ function DashboardContent() {
               ) : (
                 <Text>Asset not found.</Text>
               )}
+            </DialogContent>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Import Confirmation Dialog */}
+      <Dialog
+        open={importDialogOpen}
+        onOpenChange={(_, data) => {
+          if (!data.open) handleImportCancel();
+        }}
+      >
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>Import Assets</DialogTitle>
+            <DialogContent>
+              <Text>
+                You are about to import {importedAssets.length} asset
+                {importedAssets.length !== 1 ? 's' : ''}. Would you like to
+                clear all current assets before importing, or merge with
+                existing data?
+              </Text>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 8,
+                  justifyContent: 'flex-end',
+                  marginTop: 24,
+                }}
+              >
+                <Button appearance="subtle" onClick={handleImportCancel}>
+                  Cancel
+                </Button>
+                <Button onClick={() => handleImportConfirm(false)}>
+                  Merge (Keep Existing)
+                </Button>
+                <Button
+                  appearance="primary"
+                  onClick={() => handleImportConfirm(true)}
+                >
+                  Clear & Import
+                </Button>
+              </div>
             </DialogContent>
           </DialogBody>
         </DialogSurface>
