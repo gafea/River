@@ -1,160 +1,214 @@
-# River (Next.js + Fluent UI)
+# River - Asset Management System
 
-A comprehensive client-side asset management dashboard demonstrating modern web development practices with advanced depreciation tracking, event-based accounting, and interactive data visualization.
-
-**Key Capabilities:**
-
-- Complete asset lifecycle management (CRUD operations)
-- Advanced linear depreciation with terminal values
-- Event tracking for additional investments and expenses
-- Interactive charts showing value depreciation over time
-- Real-time search and tag-based filtering
-- Photo attachment support
-- Comprehensive test coverage
+A modern web application for tracking and managing depreciating assets with real-time value updates, interactive charts, and comprehensive event management.
 
 ## Features
 
-| Feature                               | Status           |
-| ------------------------------------- | ---------------- |
-| Add new asset with details & photo    | ✅               |
-| Dashboard grid of cards               | ✅               |
-| Tag filter                            | ✅ (via sidebar) |
-| Linear depreciation (straight-line)   | ✅               |
-| Edit / Delete actions                 | ✅               |
-| Asset detail pages with charts        | ✅               |
-| Search & filtering                    | ✅               |
-| Terminal value (salvage price)        | ✅               |
-| Event tracking (investments/expenses) | ✅               |
-| Photo attachments (base64)            | ✅               |
-| Bulk import/export (JSON)             | ✅               |
-| Comprehensive test suite              | ✅ (29 tests)    |
+### 🏷️ Asset Tracking
+- Track assets with purchase value, expected lifespan, and depreciation calculations
+- Automatic linear depreciation calculations
+- Real-time current value updates every minute
+- Support for terminal values (assets that retain value after depreciation)
 
-## Advanced Features
+### 📊 Interactive Charts
+- Visual depreciation charts with customizable time ranges
+- Event reference lines showing upgrades, repairs, and maintenance
+- Multi-line labels for better readability
+- Progress bars showing asset lifetime completion
 
-- **Depreciation Charts**: Interactive line charts showing asset value over time with proper year-based X-axis
-- **Event System**: Track additional investments and expenses that depreciate over remaining asset life
-- **Terminal Value**: Assets depreciate to a minimum salvage/residual value instead of $0
-- **Search Functionality**: Real-time search and filtering across asset names, descriptions, and tags
-- **Bulk Import/Export**: JSON-based import/export with confirmation dialogs for data safety
-- **Responsive Design**: Mobile-friendly interface using Fluent UI components
-- **Data Persistence**: Client-side localStorage with error handling and demo data seeding
+### 🎯 Event Management
+- Record asset events (upgrades, repairs, maintenance)
+- Events affect depreciation calculations and total invested amounts
+- Chronological event sorting with visual indicators
+- Positive amounts display with "+" prefix
 
-## Bulk Import/Export
+### 🏷️ Tag System
+- Organize assets with customizable tags
+- Filter and group assets by tags
+- Tag-based analytics and reporting
 
-The application supports JSON-based bulk import and export of all assets:
+### 💾 Data Management
+- Import/export asset data as JSON
+- Local storage persistence
+- Data validation and error handling
 
-### Export
+### 🎨 Modern UI
+- Built with Fluent UI components
+- Responsive design for all screen sizes
+- Dark/light theme support
+- Intuitive navigation and user experience
 
-- Click "Export All" button on the dashboard
-- Downloads a JSON file with timestamp (e.g., `assets-export-2025-11-09.json`)
-- Contains all asset data including events, photos, and metadata
+## Tech Stack
 
-### Import
-
-- Click "Import" button on the dashboard
-- Select a JSON file exported from this application
-- Choose import strategy:
-  - **Clear & Import**: Removes all existing assets and imports with original IDs
-  - **Merge (Keep Existing)**: Adds imported assets with new IDs to avoid conflicts
-- Includes validation and error handling for malformed files
-
-### Safety Features
-
-- Confirmation dialog prevents accidental data loss
-- File format validation ensures data integrity
-- ID conflict resolution when merging data
-- User feedback for successful imports and errors
-
-### Asset
-
-```typescript
-Asset {
-  id: string
-  name: string
-  description?: string
-  photoDataUrl?: string (base64)
-  purchaseValue: number
-  expectedLifeWeeks: number
-  purchaseDate: string (ISO date: yyyy-mm-dd)
-  tags: string[]
-  terminalPrice?: number (salvage/residual value)
-  events?: AssetEvent[] (additional investments/expenses)
-}
-```
-
-### AssetEvent
-
-```typescript
-AssetEvent {
-  date: string (ISO date)
-  amount: number (positive for additions, negative for deductions)
-  description?: string
-}
-```
-
-## Depreciation Formulas
-
-### Linear Depreciation (Straight-Line Method)
-
-**Asset Depreciation:**
-
-- Weekly depreciation rate = (Purchase Value - Terminal Value) / Expected Life (weeks)
-- Total depreciation = Rate × min(Age in weeks, Expected Life)
-- Current value = Purchase Value - Total Depreciation
-- When Age ≥ Expected Life: Current value = Terminal Value
-
-**Event Depreciation:**
-
-- Events (additional investments/expenses) depreciate over the remaining asset life from when they were added
-- Event weekly rate = Event Amount / Remaining Weeks at Event Date
-- Event depreciation = Rate × min(Event Age, Remaining Weeks)
-- Current event value = Event Amount - Event Depreciation
-
-**Total Current Value:**
-Current Value = Asset Value + Σ(Current Event Values)
-
-**Daily Depreciation Rate:**
-
-- Asset daily rate = (Purchase Value - Terminal Value) / (Expected Life × 7)
-- Event daily rate = Event Weekly Rate / 7
-- Total daily depreciation = Σ(All daily rates)
-
-### Key Features
-
-- **Terminal Value**: Assets depreciate to a minimum salvage/residual value instead of $0
-- **Event Tracking**: Additional investments and expenses are tracked and depreciated separately
-- **Time-based Calculations**: All calculations use precise date differences in weeks
-- **Currency Formatting**: Localized currency display with proper rounding
+- **Framework:** Next.js 16 with App Router
+- **Language:** TypeScript
+- **UI Library:** Fluent UI React Components
+- **Charts:** Recharts
+- **Testing:** Vitest + React Testing Library
+- **Styling:** CSS Modules
+- **Package Manager:** npm
 
 ## Getting Started
 
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
 ```bash
-pnpm install # or npm install / yarn
-pnpm dev
+git clone <repository-url>
+cd tag
 ```
 
-Then open http://localhost:3000
+2. Install dependencies:
+```bash
+npm install
+```
 
-## Technical Architecture
+3. Start the development server:
+```bash
+npm run dev
+```
 
-- **Frontend**: Next.js 16 with App Router and TypeScript
-- **UI Framework**: Microsoft Fluent UI v9 components
-- **Charts**: Recharts for interactive data visualization
-- **Persistence**: Browser localStorage with JSON serialization
-- **Testing**: Vitest with React Testing Library and jsdom
-- **Styling**: CSS variables with Fluent UI theming
-- **Date Handling**: Native JavaScript Date objects with ISO string storage
-- **Image Storage**: Base64 encoded data URLs for client-side storage
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Calculation Engine
+### Testing
 
-The depreciation engine handles complex scenarios:
+Run the test suite:
+```bash
+npm test
+```
 
-- **Multi-event depreciation**: Each investment/expense depreciates independently
-- **Terminal value handling**: Assets never depreciate below salvage value
-- **Time-based precision**: Weekly calculations with daily rate conversions
-- **Chart data generation**: Efficient weekly sampling for smooth curves
-- **Currency stability**: Consistent rounding to prevent display jitter
+Run tests in watch mode:
+```bash
+npm run test:watch
+```
+
+### Building for Production
+
+```bash
+npm run build
+npm start
+```
+
+### Code Formatting
+
+Format all files:
+```bash
+npm run format
+```
+
+## Project Structure
+
+```
+tag/
+├── app/                    # Next.js App Router pages
+│   ├── assets/            # Asset detail pages
+│   ├── dashboard/         # Main dashboard
+│   ├── search/            # Search functionality
+│   ├── edit/              # Asset editing
+│   └── new/               # New asset creation
+├── src/
+│   ├── components/        # React components
+│   │   ├── AssetCard.tsx  # Asset display card
+│   │   ├── AssetForm.tsx  # Asset creation/editing form
+│   │   ├── Navigation.tsx # App navigation
+│   │   └── Providers.tsx  # Context providers
+│   └── lib/               # Utility functions and types
+│       ├── store.ts       # Local storage management
+│       ├── types.ts       # TypeScript type definitions
+│       └── utils.ts       # Calculation utilities
+├── public/                # Static assets
+└── tests/                 # Test files
+```
+
+## Key Components
+
+### AssetCard
+Displays asset information with:
+- Current value (auto-updates every minute)
+- Depreciation progress bar
+- Lifetime percentage
+- Daily depreciation rate
+- Photo support
+- Click navigation to detail view
+
+### AssetForm
+Comprehensive form for creating and editing assets:
+- Basic information (name, description, value)
+- Depreciation settings (expected life, terminal value)
+- Tag management
+- Photo upload
+- Event tracking
+
+### Dashboard
+Main application view featuring:
+- Asset overview cards
+- Import/export functionality
+- Search and filtering
+- Tag-based organization
+
+## Calculation Logic
+
+### Depreciation
+Assets depreciate linearly over their expected lifespan:
+```
+daily_depreciation = (purchase_value - terminal_value) / (expected_life_weeks * 7)
+current_value = purchase_value - (daily_depreciation * days_passed)
+```
+
+### Events
+Asset events modify the total invested amount:
+```
+total_invested = purchase_value + Σ(event_amounts)
+```
+
+Events also affect depreciation calculations by changing the asset's effective value over time.
+
+## API Reference
+
+### Utility Functions
+
+#### `calculateCurrentValue(asset, events?, currentDate?)`
+Calculates the current depreciated value of an asset.
+
+#### `calculateTotalInvested(asset)`
+Returns total amount invested including all events.
+
+#### `calculateDailyDepreciation(asset)`
+Returns daily depreciation rate.
+
+#### `formatCurrency(amount)`
+Formats numbers as currency strings.
+
+#### `weeksBetween(startDate, endDate)`
+Calculates weeks between two dates.
+
+### Data Types
+
+```typescript
+interface Asset {
+  id: string;
+  name: string;
+  description?: string;
+  purchaseValue: number;
+  expectedLifeWeeks: number;
+  purchaseDate: string;
+  tags: string[];
+  terminalValue?: number;
+  photoDataUrl?: string;
+  events?: AssetEvent[];
+}
+
+interface AssetEvent {
+  date: string;
+  amount: number;
+  description: string;
+}
+```
 
 ## Future Enhancements
 

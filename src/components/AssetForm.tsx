@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { addAsset, updateAsset } from '@/src/lib/store';
+import { addAsset, updateAsset, getTagDefaults } from '@/src/lib/store';
 import { Asset, AssetEvent } from '@/src/lib/types';
 import {
   Input,
@@ -102,6 +102,26 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
       validate();
     }
   }, [asset]);
+
+  // Auto-fill expected life based on tags for new assets
+  useEffect(() => {
+    if (isEdit) return; // Only auto-fill for new assets
+
+    const tagList = tags
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    if (tagList.length === 0) return;
+
+    const defaults = getTagDefaults();
+    const matchingTag = tagList.find((tag) => defaults[tag]);
+
+    if (matchingTag && expectedLifeWeeks === 52) {
+      // Only auto-fill if still at default
+      setExpectedLifeWeeks(defaults[matchingTag]);
+    }
+  }, [tags, isEdit, expectedLifeWeeks]);
 
   function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

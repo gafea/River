@@ -11,17 +11,35 @@ import {
   weeksBetween,
   calculateTotalInvested,
   calculateDailyDepreciation,
+  calculateCurrentValue,
 } from '@/src/lib/utils';
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 export default function AssetCard({
   asset,
-  currentValue,
+  currentValue: initialCurrentValue,
 }: {
   asset: Asset;
   currentValue: number;
 }) {
   const router = useRouter();
+  const [currentValue, setCurrentValue] = useState(initialCurrentValue);
+
+  // Auto-update current value every 15 seconds
+  useEffect(() => {
+    const updateCurrentValue = () => {
+      setCurrentValue(calculateCurrentValue(asset));
+    };
+
+    // Update immediately
+    updateCurrentValue();
+
+    // Set up interval to update every 15 seconds
+    const interval = setInterval(updateCurrentValue, 15000); // 15 seconds
+
+    return () => clearInterval(interval);
+  }, [asset]);
 
   // Calculate remaining life percentage
   const ageWeeks = weeksBetween(asset.purchaseDate);
@@ -57,7 +75,7 @@ export default function AssetCard({
         borderRadius: 16,
         padding: '16px',
         overflow: 'hidden',
-        backgroundColor: 'var(--colorNeutralBackground3)',
+        backgroundColor: 'var(--colorNeutralBackground2)',
         transition: 'transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out',
         ...(asset.photoDataUrl && {
           backgroundImage: `url(${asset.photoDataUrl})`,
@@ -109,19 +127,22 @@ export default function AssetCard({
               >
                 {asset.name}
               </Text>
-              <Text
-                size={300}
-                style={{
-                  color: 'var(--colorNeutralForeground3)',
-                  display: 'block',
-                }}
-              >
-                {asset.description || 'No description'}
-              </Text>
+              {asset.description && (
+                <Text
+                  size={300}
+                  style={{
+                    color: 'var(--colorNeutralForeground3)',
+                    display: 'block',
+                    marginBottom: 4,
+                  }}
+                >
+                  {asset.description}
+                </Text>
+              )}
             </div>
           }
         />
-        <div style={{ textAlign: 'center', marginTop: 8 }}>
+        <div style={{ textAlign: 'center' }}>
           <div
             style={{
               display: 'flex',

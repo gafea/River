@@ -19,6 +19,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  ReferenceLine,
 } from 'recharts';
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { deleteAsset } from '@/src/lib/store';
@@ -71,7 +72,7 @@ export default function AssetDetailPage() {
     for (let year = startYear; year <= endYear; year++) {
       const yearStart = new Date(year, 0, 1); // January 1st
       if (yearStart >= purchaseDate && yearStart <= chartEnd) {
-        ticks.push(yearStart.toISOString().slice(0, 10));
+        ticks.push(yearStart.getTime()); // Use timestamp instead of date string
       }
     }
     return ticks;
@@ -108,6 +109,12 @@ export default function AssetDetailPage() {
       }
     }
 
+    // Always include today's date if it's after purchase date
+    const todayStr = now.toISOString().slice(0, 10);
+    if (now >= purchaseDate) {
+      allDates.add(todayStr);
+    }
+
     // Sort dates and create data points
     const sortedDates = Array.from(allDates).sort();
     for (const dateStr of sortedDates) {
@@ -115,12 +122,16 @@ export default function AssetDetailPage() {
       const value = calculateCurrentValue(asset, d);
       data.push({
         date: dateStr,
+        timestamp: d.getTime(),
         value,
       });
     }
 
     return data;
   }, [asset]);
+
+  const todayDate = new Date().toISOString().slice(0, 10);
+  const todayTimestamp = new Date().getTime();
 
   const handleDelete = () => {
     deleteAsset(id);
@@ -248,6 +259,16 @@ export default function AssetDetailPage() {
       <Text as="h1" size={800} weight="semibold">
         {asset.name}
       </Text>
+      <Text
+        as="h2"
+        size={500}
+        style={{
+          color: 'var(--colorNeutralForeground3)',
+          display: 'block',
+        }}
+      >
+        {asset.description}
+      </Text>
       <Card
         style={{
           marginTop: 24,
@@ -257,8 +278,6 @@ export default function AssetDetailPage() {
       >
         <CardHeader header={<Text weight="semibold">Details</Text>} />
         <div style={{ padding: 16 }}>
-          <Text>Description: {asset.description || 'N/A'}</Text>
-          <br />
           <Text>Purchase Value: {formatCurrency(asset.purchaseValue)}</Text>
           <br />
           <Text>
@@ -282,12 +301,18 @@ export default function AssetDetailPage() {
             <>
               <Text>Events:</Text>
               <ul>
-                {asset.events.map((e, i) => (
-                  <li key={i}>
-                    {e.date}: {formatCurrency(e.amount)}{' '}
-                    {e.description && `(${e.description})`}
-                  </li>
-                ))}
+                {asset.events
+                  .sort(
+                    (a, b) =>
+                      new Date(a.date).getTime() - new Date(b.date).getTime(),
+                  )
+                  .map((e, i) => (
+                    <li key={i}>
+                      {e.date}: {e.amount >= 0 ? '+' : ''}
+                      {formatCurrency(e.amount)}{' '}
+                      {e.description && `(${e.description})`}
+                    </li>
+                  ))}
               </ul>
             </>
           )}
@@ -310,28 +335,91 @@ export default function AssetDetailPage() {
       </Card>
       <Card style={{ backgroundColor: 'var(--colorNeutralBackground2)' }}>
         <CardHeader header={<Text weight="semibold">Value Over Time</Text>} />
-        <div style={{ padding: 16, height: 400 }}>
+        <div style={{ height: 400 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
+            <LineChart data={chartData} margin={{ top: 32 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#88888844" />
               <XAxis
-                dataKey="date"
-                stroke="#eeeeee"
+                dataKey="timestamp"
+                stroke="#888888"
+                type="number"
+                domain={['dataMin', 'dataMax']}
                 ticks={xAxisTicks}
                 tickFormatter={(tickItem) => {
                   const date = new Date(tickItem);
                   return date.getFullYear().toString();
                 }}
               />
-              <YAxis stroke="#eeeeee" />
+              <YAxis stroke="#888888" />
               <Tooltip
                 formatter={(value) => formatCurrency(value as number)}
+                labelFormatter={(label) => {
+                  const date = new Date(label);
+                  return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  });
+                }}
                 contentStyle={{
                   backgroundColor: '#1a1a1a',
-                  border: '1px solid #404040',
+                  border: '1px solid #888888',
                   borderRadius: '4px',
                 }}
                 labelStyle={{ color: '#eeeeee' }}
+              />
+              {asset.events?.map((event, index) => (
+                <ReferenceLine
+                  key={`event-${index}`}
+                  x={new Date(event.date).getTime()}
+                  stroke={`#0078d488`}
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  label={(props) => (
+                    <g>
+                      <text
+                        x={props.viewBox.x}
+                        y={props.viewBox.y - 22}
+                        textAnchor="middle"
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          fill: `#0078d4cc`,
+                        }}
+                      >
+                        {event.description || `Event ${index + 1}`}
+                      </text>
+                      <text
+                        x={props.viewBox.x}
+                        y={props.viewBox.y - 8}
+                        textAnchor="middle"
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 'normal',
+                          fill: `#0078d4cc`,
+                        }}
+                      >
+                        {event.amount >= 0 ? '+' : ''}
+                        {formatCurrency(event.amount)}
+                      </text>
+                    </g>
+                  )}
+                />
+              ))}
+              <ReferenceLine
+                x={todayTimestamp}
+                stroke="#ff6b6b"
+                strokeWidth={2}
+                label={{
+                  value: 'today',
+                  position: 'top',
+                  offset: 10,
+                  style: {
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    fill: '#ff6b6b',
+                  },
+                }}
               />
               <Line
                 type="monotone"
