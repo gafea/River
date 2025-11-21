@@ -18,11 +18,14 @@
 # misc
 .DS_Store
 *.pem
+Thumbs.db
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
+logs/
 
 # local env files
 .env*.local
@@ -40,4 +43,12 @@ dev.db
 *.db
 *.db-journal
 
-/generated/prisma
+# editor
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea/
+
+# generated
+/src/generated
