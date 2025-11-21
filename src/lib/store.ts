@@ -97,7 +97,7 @@ function seed(): Asset[] {
       purchaseValue: 8299,
       expectedLifeWeeks: 626,
       purchaseDate: iso(new Date(2018, 7 - 1, 11)),
-      tags: ['PC'],
+      tag: 'PC',
     },
     {
       id: crypto.randomUUID(),
@@ -106,7 +106,7 @@ function seed(): Asset[] {
       purchaseValue: 7721,
       expectedLifeWeeks: 260,
       purchaseDate: iso(new Date(2025, 9 - 1, 11)),
-      tags: ['iPhone'],
+      tag: 'iPhone',
     },
   ];
   write(demo);
@@ -176,7 +176,17 @@ export async function deleteAsset(id: string) {
   }
 }
 
-export function clearAllAssets() {
+export async function clearAllAssets() {
+  try {
+    const res = await fetch('/api/assets', {
+      method: 'DELETE',
+    });
+    if (!res.ok) {
+      throw new Error('Failed to clear assets');
+    }
+  } catch (e) {
+    console.warn('Failed to clear assets via API', e);
+  }
   write([]);
 }
 
@@ -197,3 +207,8 @@ export function getTagDefaults(): Record<string, number> {
   return readTagDefaults();
 }
 
+export function setTagDefault(tag: string, expectedLifeWeeks: number) {
+  const defaults = readTagDefaults();
+  defaults[tag] = expectedLifeWeeks;
+  writeTagDefaults(defaults);
+}

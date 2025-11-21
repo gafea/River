@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
   // Convert to the expected format
   const formatted = assets.map((asset) => ({
     ...asset,
-    tags: JSON.parse(asset.tags),
+    tag: asset.tag,
     events: asset.events ? JSON.parse(asset.events) : undefined,
   }));
 
@@ -67,11 +67,25 @@ export async function POST(request: NextRequest) {
     purchaseValue,
     expectedLifeWeeks,
     purchaseDate,
-    tags,
+    tag,
     photoDataUrl,
     terminalPrice,
     events,
   } = body;
+
+  if (photoDataUrl && !photoDataUrl.startsWith('data:image/')) {
+    return NextResponse.json(
+      { error: 'Invalid photo format' },
+      { status: 400 },
+    );
+  }
+
+  if (events && !Array.isArray(events)) {
+    return NextResponse.json(
+      { error: 'Events must be an array' },
+      { status: 400 },
+    );
+  }
 
   try {
     const asset = await prisma.asset.create({
@@ -81,7 +95,7 @@ export async function POST(request: NextRequest) {
         purchaseValue,
         expectedLifeWeeks,
         purchaseDate,
-        tags: JSON.stringify(tags || []),
+        tag: tag || '',
         photoDataUrl: photoDataUrl ?? null,
         terminalPrice: terminalPrice ?? null,
         events: events ? JSON.stringify(events) : null,
@@ -91,7 +105,7 @@ export async function POST(request: NextRequest) {
 
     const formatted = {
       ...asset,
-      tags: JSON.parse(asset.tags),
+      tag: asset.tag,
       events: asset.events ? JSON.parse(asset.events) : undefined,
     };
 
@@ -117,6 +131,28 @@ export async function POST(request: NextRequest) {
     console.error('Asset create failed', e);
     return NextResponse.json(
       { error: 'Failed to create asset' },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const res = NextResponse.next();
+  const session = (await getIronSession(request, res, sessionOptions)) as any;
+
+  if (!session.userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    await prisma.asset.deleteMany({
+      where: { userId: session.userId },
+    });
+    return NextResponse.json({ success: true });
+  } catch (e) {
+    console.error('Failed to clear assets', e);
+    return NextResponse.json(
+      { error: 'Failed to clear assets' },
       { status: 500 },
     );
   }

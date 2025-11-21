@@ -51,12 +51,9 @@ export function calculateCurrentValue(
 export function groupAssetsByTag(assets: Asset[]): Record<string, Asset[]> {
   const grouped: Record<string, Asset[]> = {};
   for (const a of assets) {
-    const tags = a.tags && a.tags.length > 0 ? a.tags : ['Untagged'];
-    for (const t of tags) {
-      const key = t.trim();
-      if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(a);
-    }
+    const tag = a.tag && a.tag.trim() ? a.tag.trim() : 'Untagged';
+    if (!grouped[tag]) grouped[tag] = [];
+    grouped[tag].push(a);
   }
   return grouped;
 }

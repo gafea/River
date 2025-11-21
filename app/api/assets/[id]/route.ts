@@ -17,12 +17,45 @@ export async function PUT(
 
   const body = await request.json();
 
+  // Explicitly pick allowed fields to prevent mass assignment/IDOR
+  const {
+    name,
+    description,
+    purchaseValue,
+    expectedLifeWeeks,
+    purchaseDate,
+    tag,
+    photoDataUrl,
+    terminalPrice,
+    events,
+  } = body;
+
+  if (photoDataUrl && !photoDataUrl.startsWith('data:image/')) {
+    return NextResponse.json(
+      { error: 'Invalid photo format' },
+      { status: 400 },
+    );
+  }
+
+  if (events && !Array.isArray(events)) {
+    return NextResponse.json(
+      { error: 'Events must be an array' },
+      { status: 400 },
+    );
+  }
+
   const asset = await prisma.asset.updateMany({
     where: { id: id, userId: session.userId },
     data: {
-      ...body,
-      tags: JSON.stringify(body.tags || []),
-      events: body.events ? JSON.stringify(body.events) : null,
+      name,
+      description,
+      purchaseValue,
+      expectedLifeWeeks,
+      purchaseDate,
+      tag: tag || '',
+      photoDataUrl,
+      terminalPrice,
+      events: events ? JSON.stringify(events) : null,
     },
   });
 
@@ -40,7 +73,7 @@ export async function PUT(
 
   const formatted = {
     ...updated,
-    tags: JSON.parse(updated.tags),
+    tag: updated.tag,
     events: updated.events ? JSON.parse(updated.events) : undefined,
   };
 

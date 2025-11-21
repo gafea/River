@@ -192,9 +192,12 @@ export default function Navigation() {
             minHeight: '100vh',
             backgroundColor: 'var(--colorNeutralBackground2)',
             padding: 16,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
           }}
         >
-          Loading navigation...
+          <div className="d_loading" />
         </div>
       }
     >

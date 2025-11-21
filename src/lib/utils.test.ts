@@ -12,7 +12,7 @@ describe('utils', () => {
       purchaseDate: new Date(
         new Date().setFullYear(new Date().getFullYear() - 2),
       ).toISOString(),
-      tags: [],
+      tag: '',
     };
     const val = calculateCurrentValue(a, new Date());
     expect(val).toBeGreaterThan(0);
@@ -27,7 +27,7 @@ describe('utils', () => {
         purchaseValue: 100,
         expectedLifeWeeks: 52,
         purchaseDate: new Date().toISOString(),
-        tags: ['X'],
+        tag: 'X',
       },
       {
         id: 'b',
@@ -35,7 +35,7 @@ describe('utils', () => {
         purchaseValue: 100,
         expectedLifeWeeks: 52,
         purchaseDate: new Date().toISOString(),
-        tags: [],
+        tag: '',
       },
     ];
     const grouped = groupAssetsByTag(assets);
@@ -52,7 +52,7 @@ describe('utils', () => {
       purchaseDate: new Date(
         new Date().setFullYear(new Date().getFullYear() - 1),
       ).toISOString(),
-      tags: [],
+      tag: '',
       terminalPrice: 100,
     };
     const val = calculateCurrentValue(a, new Date());
@@ -66,7 +66,7 @@ describe('utils', () => {
       purchaseValue: 1000,
       expectedLifeWeeks: 52,
       purchaseDate: new Date().toISOString(),
-      tags: [],
+      tag: '',
       events: [{ date: new Date().toISOString(), amount: 50 }],
     };
     const val = calculateCurrentValue(a);
@@ -80,7 +80,7 @@ describe('utils', () => {
       purchaseValue: 1000,
       expectedLifeWeeks: 52,
       purchaseDate: new Date().toISOString(),
-      tags: [],
+      tag: '',
       events: [{ date: new Date().toISOString(), amount: -200 }], // Repair cost
     };
     const val = calculateCurrentValue(a);
@@ -104,7 +104,7 @@ describe('utils', () => {
       expectedLifeWeeks: 9,
       purchaseDate: purchaseDate.toISOString(),
       terminalPrice: 100,
-      tags: [],
+      tag: '',
       events: [{ date: eventDate.toISOString(), amount: 500 }],
     };
 

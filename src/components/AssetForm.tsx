@@ -6,7 +6,12 @@ import {
   useImperativeHandle,
   useRef,
 } from 'react';
-import { addAsset, updateAsset, getTagDefaults } from '@/lib/store';
+import {
+  addAsset,
+  updateAsset,
+  getTagDefaults,
+  getAllAssets,
+} from '@/lib/store';
 import { Asset, AssetEvent } from '@/lib/types';
 import {
   Input,
@@ -20,6 +25,8 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  Combobox,
+  Option,
 } from '@fluentui/react-components';
 import { useRouter } from 'next/navigation';
 import { Add24Regular, Delete24Regular } from '@fluentui/react-icons';
@@ -47,18 +54,30 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
   const [purchaseDate, setPurchaseDate] = useState<string>(
     new Date().toISOString().slice(0, 10),
   );
-  const [tags, setTags] = useState<string>('');
+  const [tag, setTag] = useState<string>('');
   const [photoDataUrl, setPhotoDataUrl] = useState<string | undefined>(
     undefined,
   );
   const [terminalPrice, setTerminalPrice] = useState<number>(0);
   const [events, setEvents] = useState<AssetEvent[]>([]);
+  const [existingTags, setExistingTags] = useState<string[]>([]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const creationInFlightRef = useRef(false);
   const debounceRef = useRef<number | undefined>(undefined);
   const [savedAsset, setSavedAsset] = useState<Asset | undefined>(asset);
+
+  useEffect(() => {
+    const loadTags = async () => {
+      const assets = await getAllAssets();
+      const tags = Array.from(
+        new Set(assets.map((a) => a.tag).filter(Boolean)),
+      ).sort();
+      setExistingTags(tags);
+    };
+    loadTags();
+  }, []);
 
   function validate(
     fields?: Partial<{
@@ -96,7 +115,7 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
       setPurchaseValue(asset.purchaseValue);
       setExpectedLifeWeeks(asset.expectedLifeWeeks);
       setPurchaseDate(asset.purchaseDate);
-      setTags(asset.tags.join(', '));
+      setTag(asset.tag || '');
       setPhotoDataUrl(asset.photoDataUrl);
       setTerminalPrice(asset.terminalPrice ?? 0);
       setEvents(asset.events || []);
@@ -113,25 +132,18 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
     }
   }, [asset]);
 
-  // Auto-fill expected life based on tags for new assets
+  // Auto-fill expected life based on tag
   useEffect(() => {
-    if (isEdit) return; // Only auto-fill for new assets
-
-    const tagList = tags
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean);
-
-    if (tagList.length === 0) return;
+    if (!tag) return;
+    // If editing and tag hasn't changed from original, don't overwrite
+    if (isEdit && asset?.tag === tag) return;
 
     const defaults = getTagDefaults();
-    const matchingTag = tagList.find((tag) => defaults[tag]);
-
-    if (matchingTag && expectedLifeWeeks === 52) {
-      // Only auto-fill if still at default
-      setExpectedLifeWeeks(defaults[matchingTag]);
+    if (defaults[tag]) {
+      setExpectedLifeWeeks(defaults[tag]);
+      validate({ expectedLifeWeeks: defaults[tag] });
     }
-  }, [tags, isEdit, expectedLifeWeeks]);
+  }, [tag, isEdit, asset]);
 
   function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -152,10 +164,7 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
       purchaseValue: Number(purchaseValue),
       expectedLifeWeeks: Number(expectedLifeWeeks),
       purchaseDate,
-      tags: tags
-        .split(',')
-        .map((t) => t.trim())
-        .filter(Boolean),
+      tag: tag.trim(),
       photoDataUrl,
       terminalPrice: terminalPrice > 0 ? terminalPrice : undefined,
       events: events.length > 0 ? events : undefined,
@@ -198,10 +207,7 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
       purchaseValue: Number(purchaseValue),
       expectedLifeWeeks: Number(expectedLifeWeeks),
       purchaseDate,
-      tags: tags
-        .split(',')
-        .map((t) => t.trim())
-        .filter(Boolean),
+      tag: tag.trim(),
       photoDataUrl,
       terminalPrice: terminalPrice > 0 ? terminalPrice : undefined,
       events: events.length > 0 ? events : undefined,
@@ -247,7 +253,7 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
     purchaseValue,
     expectedLifeWeeks,
     purchaseDate,
-    tags,
+    tag,
     photoDataUrl,
     terminalPrice,
     events,
@@ -288,6 +294,21 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
             validate({ name: d.value });
           }}
         />
+      </Field>
+      <Field label="Tag">
+        <Combobox
+          freeform
+          value={tag}
+          onOptionSelect={(_, data) => setTag(data.optionValue || '')}
+          onChange={(e) => setTag(e.target.value)}
+          placeholder="Select or type a tag"
+        >
+          {existingTags.map((t) => (
+            <Option key={t} value={t}>
+              {t}
+            </Option>
+          ))}
+        </Combobox>
       </Field>
       <Field label="Description">
         <Textarea
@@ -343,13 +364,7 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
           }}
         />
       </Field>
-      <Field label="Tags (comma separated)">
-        <Input
-          value={tags}
-          onChange={(_, d) => setTags(d.value)}
-          placeholder="e.g. IT, Laptop"
-        />
-      </Field>
+
       <Field label="Terminal Price (optional)">
         <Input
           type="number"

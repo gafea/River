@@ -37,7 +37,7 @@ model Asset {
   purchaseValue      Float
   expectedLifeWeeks  Int
   purchaseDate       String // ISO date
-  tags               String // JSON array
+  tag                String @default("")
   terminalPrice      Float?
   events             String? // JSON array of AssetEvent
   userId             String

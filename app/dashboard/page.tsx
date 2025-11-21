@@ -4,7 +4,13 @@ import {
   calculateCurrentValue,
   calculateDailyDepreciation,
 } from '@/lib/utils';
-import { getAllAssets, addAsset, clearAllAssets } from '@/lib/store';
+import {
+  getAllAssets,
+  addAsset,
+  clearAllAssets,
+  getTagDefaults,
+  setTagDefault,
+} from '@/lib/store';
 import AssetCard from '@/components/AssetCard';
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -16,6 +22,7 @@ import {
   DialogTitle,
   DialogContent,
   Button,
+  Input,
 } from '@fluentui/react-components';
 import AssetForm, { type AssetFormHandle } from '@/components/AssetForm';
 import {
@@ -23,9 +30,78 @@ import {
   Dismiss24Filled,
   ArrowDownload24Filled,
   ArrowUpload24Filled,
+  Edit24Regular,
+  Checkmark24Regular,
+  Dismiss24Regular,
 } from '@fluentui/react-icons';
 import { Suspense } from 'react';
 import type { Asset } from '@/lib/types';
+
+function TagDefaultEditor({
+  tag,
+  initialValue,
+  onSave,
+}: {
+  tag: string;
+  initialValue?: number;
+  onSave: (val: number) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(initialValue?.toString() || '');
+
+  useEffect(() => {
+    setValue(initialValue?.toString() || '');
+  }, [initialValue]);
+
+  if (editing) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <Input
+          type="number"
+          value={value}
+          onChange={(e, d) => setValue(d.value)}
+          style={{ width: 80 }}
+          size="small"
+        />
+        <Button
+          icon={<Checkmark24Regular />}
+          appearance="subtle"
+          size="small"
+          onClick={() => {
+            const num = parseInt(value, 10);
+            if (!isNaN(num) && num > 0) {
+              onSave(num);
+              setEditing(false);
+            }
+          }}
+        />
+        <Button
+          icon={<Dismiss24Regular />}
+          appearance="subtle"
+          size="small"
+          onClick={() => {
+            setEditing(false);
+            setValue(initialValue?.toString() || '');
+          }}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <Text size={200} style={{ color: '#666' }}>
+        {initialValue ? `Default: ${initialValue} weeks` : 'Set default life'}
+      </Text>
+      <Button
+        icon={<Edit24Regular />}
+        appearance="subtle"
+        size="small"
+        onClick={() => setEditing(true)}
+      />
+    </div>
+  );
+}
 
 function DashboardContent() {
   const router = useRouter();
@@ -43,6 +119,10 @@ function DashboardContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importedAssets, setImportedAssets] = useState<Asset[]>([]);
+  const [importedDefaults, setImportedDefaults] = useState<
+    Record<string, number>
+  >({});
+  const [tagDefaults, setTagDefaults] = useState<Record<string, number>>({});
 
   const grouped = groupAssetsByTag(assets);
   const assetToEdit = useMemo(
@@ -57,6 +137,7 @@ function DashboardContent() {
       setAssets(allAssets);
     };
     loadAssets();
+    setTagDefaults(getTagDefaults());
   }, [refreshKey]);
 
   // Sync URL tag param with state
@@ -73,13 +154,32 @@ function DashboardContent() {
     router.push(next as any);
   }, [router, searchParams]);
 
+  const handleUpdateTagDefault = (tag: string, weeks: number) => {
+    setTagDefault(tag, weeks);
+    setTagDefaults(getTagDefaults());
+  };
+
   const handleSaved = () => {
     setRefreshKey((prev) => prev + 1);
     closeDialogs();
   };
 
   const handleExportAll = useCallback(() => {
-    const dataStr = JSON.stringify(assets, null, 2);
+    // Strip id and userId (if present) from assets before exporting
+    const assetsToExport = assets.map((asset) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, ...rest } = asset;
+      // @ts-ignore - userId might be present at runtime
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { userId, ...cleanAsset } = rest;
+      return cleanAsset;
+    });
+
+    const exportData = {
+      assets: assetsToExport,
+      tagDefaults: getTagDefaults(),
+    };
+    const dataStr = JSON.stringify(exportData, null, 2);
     const dataUri =
       'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
 
@@ -103,16 +203,24 @@ function DashboardContent() {
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
-          const importedAssets = JSON.parse(
-            e.target?.result as string,
-          ) as Asset[];
-          // Validate that it's an array of assets
-          if (!Array.isArray(importedAssets)) {
-            alert('Invalid file format. Expected an array of assets.');
+          const json = JSON.parse(e.target?.result as string);
+          let assetsToImport: Asset[] = [];
+          let defaultsToImport: Record<string, number> = {};
+
+          if (Array.isArray(json)) {
+            assetsToImport = json;
+          } else if (json.assets && Array.isArray(json.assets)) {
+            assetsToImport = json.assets;
+            defaultsToImport = json.tagDefaults || {};
+          } else {
+            alert(
+              'Invalid file format. Expected an array of assets or an export object.',
+            );
             return;
           }
 
-          setImportedAssets(importedAssets);
+          setImportedAssets(assetsToImport);
+          setImportedDefaults(defaultsToImport);
           setImportDialogOpen(true);
         } catch (error) {
           alert('Failed to import assets. Please check the file format.');
@@ -128,32 +236,43 @@ function DashboardContent() {
   );
 
   const handleImportConfirm = useCallback(
-    (clearCurrent: boolean) => {
-      if (clearCurrent) {
-        clearAllAssets();
-      }
-
-      importedAssets.forEach((asset) => {
+    async (clearCurrent: boolean) => {
+      try {
         if (clearCurrent) {
-          // Keep original IDs when clearing current data
-          addAsset(asset);
-        } else {
-          // Generate new IDs to avoid conflicts when merging
-          const { id, ...assetWithoutId } = asset;
-          addAsset(assetWithoutId);
+          await clearAllAssets();
         }
-      });
 
-      setRefreshKey((prev) => prev + 1);
-      setImportDialogOpen(false);
-      setImportedAssets([]);
+        // Save imported defaults
+        Object.entries(importedDefaults).forEach(([tag, val]) => {
+          setTagDefault(tag, val);
+        });
+        setTagDefaults(getTagDefaults());
+
+        const promises = importedAssets.map((asset) => {
+          // Always generate new IDs during import
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { id, ...assetWithoutId } = asset;
+          return addAsset(assetWithoutId);
+        });
+
+        await Promise.all(promises);
+
+        setRefreshKey((prev) => prev + 1);
+        setImportDialogOpen(false);
+        setImportedAssets([]);
+        setImportedDefaults({});
+      } catch (error) {
+        console.error('Import failed', error);
+        alert('Failed to import assets. Please try again.');
+      }
     },
-    [importedAssets],
+    [importedAssets, importedDefaults],
   );
 
   const handleImportCancel = useCallback(() => {
     setImportDialogOpen(false);
     setImportedAssets([]);
+    setImportedDefaults({});
   }, []);
 
   const visibleAssets = useMemo(() => {
@@ -178,9 +297,25 @@ function DashboardContent() {
           justifyContent: 'space-between',
         }}
       >
-        <Text as="h1" size={800} weight="semibold">
-          {activeTag ? `${activeTag}` : 'All Assets'}
-        </Text>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+          }}
+        >
+          <Text as="h1" size={800} weight="semibold">
+            {activeTag ? `${activeTag}` : 'All Assets'}
+          </Text>
+          {activeTag && (
+            <TagDefaultEditor
+              tag={activeTag}
+              initialValue={tagDefaults[activeTag]}
+              onSave={(val) => handleUpdateTagDefault(activeTag, val)}
+            />
+          )}
+        </div>
         {!activeTag && (
           <div style={{ display: 'flex', gap: 8 }}>
             <Button icon={<ArrowDownload24Filled />} onClick={handleExportAll}>
@@ -216,14 +351,24 @@ function DashboardContent() {
 
             return (
               <section key={tag} style={{ marginBlock: 24 }}>
-                <Text
-                  as="h2"
-                  size={600}
-                  weight="semibold"
-                  style={{ marginBottom: 12 }}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    marginBottom: 12,
+                  }}
                 >
-                  {tag}
-                </Text>
+                  <Text as="h2" size={600} weight="semibold">
+                    {tag}
+                  </Text>
+                  <TagDefaultEditor
+                    tag={tag}
+                    initialValue={tagDefaults[tag]}
+                    onSave={(val) => handleUpdateTagDefault(tag, val)}
+                  />
+                </div>
                 <div className="grid" style={{ marginTop: 12 }}>
                   {sortedList.map((a) => (
                     <AssetCard
@@ -404,7 +549,7 @@ export default function DashboardPage() {
       fallback={
         <main className="container">
           <div style={{ textAlign: 'center', padding: '48px' }}>
-            <Text size={400}>Loading dashboard...</Text>
+            <div className="d_loading" />
           </div>
         </main>
       }

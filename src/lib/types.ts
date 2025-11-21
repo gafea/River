@@ -12,7 +12,7 @@ export type Asset = {
   purchaseValue: number;
   expectedLifeWeeks: number;
   purchaseDate: string; // ISO date string
-  tags: string[];
+  tag: string;
   terminalPrice?: number;
   events?: AssetEvent[];
 };

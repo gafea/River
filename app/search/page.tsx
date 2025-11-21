@@ -139,7 +139,7 @@ export default function SearchPage() {
       fallback={
         <main className="container">
           <div style={{ textAlign: 'center', padding: '48px' }}>
-            <Text size={400}>Loading search...</Text>
+            <div className="d_loading" />
           </div>
         </main>
       }

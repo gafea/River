@@ -9,6 +9,7 @@ vi.mock('@/lib/store', () => {
     addAsset: vi.fn(),
     updateAsset: vi.fn(),
     getTagDefaults: vi.fn(() => ({})),
+    getAllAssets: vi.fn(() => Promise.resolve([])),
   };
 });
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));
@@ -38,7 +39,7 @@ describe('AssetForm autosave', () => {
       purchaseValue: 1000,
       expectedLifeWeeks: 52,
       purchaseDate: '2025-01-01',
-      tags: [],
+      tag: '',
     } as Asset);
 
     render(<AssetForm onSaved={() => {}} />);
@@ -67,7 +68,7 @@ describe('AssetForm autosave', () => {
       purchaseValue: 500,
       expectedLifeWeeks: 104,
       purchaseDate: '2025-01-01',
-      tags: [],
+      tag: '',
     };
 
     render(<AssetForm asset={existing} />);

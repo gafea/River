@@ -9,6 +9,7 @@ vi.mock('@/lib/store', () => ({
   addAsset: vi.fn(),
   updateAsset: vi.fn(),
   getTagDefaults: vi.fn(() => ({})),
+  getAllAssets: vi.fn(() => Promise.resolve([])),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -33,7 +34,7 @@ describe('AssetForm', () => {
     expect(screen.getByLabelText(/Purchase Value/i)).toBeTruthy();
     expect(screen.getByLabelText(/Expected Life/i)).toBeTruthy();
     expect(screen.getByLabelText(/Purchase Date/i)).toBeTruthy();
-    expect(screen.getByLabelText(/Tags/i)).toBeTruthy();
+    expect(screen.getByLabelText(/Tag/i)).toBeTruthy();
   });
 
   it('populates form with existing asset data', () => {
@@ -44,7 +45,7 @@ describe('AssetForm', () => {
       purchaseValue: 100,
       expectedLifeWeeks: 52,
       purchaseDate: '2023-01-01',
-      tags: ['tag1', 'tag2'],
+      tag: 'tag1',
       terminalPrice: 10,
     };
 
@@ -55,7 +56,7 @@ describe('AssetForm', () => {
     expect(screen.getByDisplayValue('100')).toBeTruthy();
     expect(screen.getByDisplayValue('52')).toBeTruthy();
     expect(screen.getByDisplayValue('2023-01-01')).toBeTruthy();
-    expect(screen.getByDisplayValue('tag1, tag2')).toBeTruthy();
+    expect(screen.getByDisplayValue('tag1')).toBeTruthy();
     expect(screen.getByDisplayValue('10')).toBeTruthy();
   });
 
@@ -138,7 +139,7 @@ describe('AssetForm', () => {
       purchaseValue: 100,
       expectedLifeWeeks: 52,
       purchaseDate: '2023-01-01',
-      tags: [],
+      tag: '',
     };
 
     const ref = { current: null } as any;

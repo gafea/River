@@ -18,7 +18,18 @@ export default function AuthShell({ children }: { children: ReactNode }) {
   }, [isAuthenticated, isLoading, pathname, router]);
 
   if (isLoading) {
-    return null; // Or a loading spinner
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+        }}
+      >
+        <div className="d_loading" />
+      </div>
+    );
   }
 
   const showNavigation = isAuthenticated && pathname !== '/auth';

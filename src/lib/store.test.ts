@@ -46,7 +46,7 @@ describe('store', () => {
         purchaseValue: 1000,
         expectedLifeWeeks: 52,
         purchaseDate: '2023-01-01',
-        tags: ['test'],
+        tag: 'test',
       },
     ];
     localStorageMock.getItem.mockImplementation((key) => {
@@ -66,7 +66,7 @@ describe('store', () => {
       purchaseValue: 500,
       expectedLifeWeeks: 26,
       purchaseDate: '2024-01-01',
-      tags: ['electronics'],
+      tag: 'electronics',
     };
 
     await addAsset(newAssetData);
@@ -85,13 +85,13 @@ describe('store', () => {
       purchaseValue: 1000,
       expectedLifeWeeks: 52,
       purchaseDate: '2023-01-01',
-      tags: ['old'],
+      tag: 'old',
     };
 
     const updatedAsset: Asset = {
       ...existingAsset,
       name: 'Updated Name',
-      tags: ['updated'],
+      tag: 'updated',
     };
 
     // Mock existing data
@@ -115,7 +115,7 @@ describe('store', () => {
         purchaseValue: 100,
         expectedLifeWeeks: 10,
         purchaseDate: '2023-01-01',
-        tags: [],
+        tag: '',
       },
       {
         id: '2',
@@ -123,7 +123,7 @@ describe('store', () => {
         purchaseValue: 200,
         expectedLifeWeeks: 20,
         purchaseDate: '2023-01-01',
-        tags: [],
+        tag: '',
       },
     ];
 
@@ -149,7 +149,7 @@ describe('store', () => {
         purchaseValue: 100,
         expectedLifeWeeks: 10,
         purchaseDate: '2023-01-01',
-        tags: [],
+        tag: '',
       },
     ];
 
@@ -184,7 +184,7 @@ describe('store', () => {
       purchaseValue: 100,
       expectedLifeWeeks: 10,
       purchaseDate: '2023-01-01',
-      tags: [],
+      tag: '',
     };
 
     const asset2Data = {
@@ -192,7 +192,7 @@ describe('store', () => {
       purchaseValue: 200,
       expectedLifeWeeks: 20,
       purchaseDate: '2023-01-01',
-      tags: [],
+      tag: '',
     };
 
     const addedAsset1 = await addAsset(asset1Data);
@@ -203,7 +203,7 @@ describe('store', () => {
     expect(addedAsset1.id).not.toBe(addedAsset2.id);
   });
 
-  it('clears all assets', () => {
+  it('clears all assets', async () => {
     const assets: Asset[] = [
       {
         id: '1',
@@ -211,7 +211,7 @@ describe('store', () => {
         purchaseValue: 100,
         expectedLifeWeeks: 10,
         purchaseDate: '2023-01-01',
-        tags: [],
+        tag: '',
       },
       {
         id: '2',
@@ -219,7 +219,7 @@ describe('store', () => {
         purchaseValue: 200,
         expectedLifeWeeks: 20,
         purchaseDate: '2023-01-01',
-        tags: [],
+        tag: '',
       },
     ];
 
@@ -229,8 +229,17 @@ describe('store', () => {
       return null;
     });
 
-    clearAllAssets();
+    // Mock successful API call
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ success: true }),
+    });
 
+    await clearAllAssets();
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/assets', {
+      method: 'DELETE',
+    });
     expect(localStorageMock.setItem).toHaveBeenCalledWith('assets.v1', '[]');
   });
 });

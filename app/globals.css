@@ -41,3 +41,43 @@ body {
 .asset-card:active {
   transform: scale(0.99);
 }
+
+.d_loading::before {
+  display: block !important;
+  content: '';
+  height: 1em;
+  width: 1em;
+  margin: 0.375em;
+  margin-right: 0.125em;
+  padding: 0.125em;
+  border-radius: 50%;
+  animation: 1.25s linear infinite spinner;
+  animation-play-state: running;
+  animation-play-state: inherit;
+  border: solid 0.25em rgba(128, 128, 128, 0.5);
+  border-top-color: #1a73e8 !important;
+  will-change: transform;
+  text-align: center;
+  font-size: 16px;
+  line-height: 16px;
+  font-weight: bold;
+}
+
+.d_loading {
+  transition-duration: 0.5s;
+  transition-delay: 0.1s;
+  transition-timing-function: ease;
+  display: unset;
+  opacity: 1;
+  width: 2.375em;
+  transform: translateX(0);
+}
+
+@keyframes spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

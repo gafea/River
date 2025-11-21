@@ -146,7 +146,19 @@ export default function AssetDetailPage() {
 
   // Show loading state during hydration to prevent hydration mismatch
   if (isLoading) {
-    return <main className="container"></main>;
+    return (
+      <main className="container">
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            padding: '48px',
+          }}
+        >
+          <div className="d_loading" />
+        </div>
+      </main>
+    );
   }
 
   if (!asset) {
@@ -297,7 +309,7 @@ export default function AssetDetailPage() {
               : 'Full depreciation'}
           </Text>
           <br />
-          <Text>Tags: {asset.tags.join(', ') || 'None'}</Text>
+          <Text>Tag: {asset.tag || 'None'}</Text>
           <br />
           {asset.events && asset.events.length > 0 && (
             <>
