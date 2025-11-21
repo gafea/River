@@ -101,7 +101,9 @@ function NavigationContent() {
               ...(isActivePath('/dashboard') &&
                 !activeTag &&
                 !searchParams.get('search') && {
-                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E6F3FF',
+                  backgroundColor: isDark
+                    ? 'rgba(255, 255, 255, 0.1)'
+                    : '#E6F3FF',
                   color: isDark ? '#ffffff' : '#0066CC',
                 }),
             }}
@@ -115,7 +117,9 @@ function NavigationContent() {
             style={{
               justifyContent: 'flex-start',
               ...(isActivePath('/search') && {
-                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E6F3FF',
+                backgroundColor: isDark
+                  ? 'rgba(255, 255, 255, 0.1)'
+                  : '#E6F3FF',
                 color: isDark ? '#ffffff' : '#0066CC',
               }),
             }}
@@ -144,7 +148,9 @@ function NavigationContent() {
               style={{
                 justifyContent: 'flex-start',
                 ...(activeTag === tag && {
-                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E6F3FF',
+                  backgroundColor: isDark
+                    ? 'rgba(255, 255, 255, 0.1)'
+                    : '#E6F3FF',
                   color: isDark ? '#ffffff' : '#0066CC',
                 }),
               }}

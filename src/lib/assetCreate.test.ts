@@ -6,7 +6,12 @@ vi.mock('@/lib/db', () => {
   return {
     prisma: {
       asset: {
-        create: vi.fn(async ({ data }: any) => ({ ...data, id: 'generated-id', tags: data.tags, events: data.events })),
+        create: vi.fn(async ({ data }: any) => ({
+          ...data,
+          id: 'generated-id',
+          tags: data.tags,
+          events: data.events,
+        })),
       },
     },
   };

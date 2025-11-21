@@ -73,7 +73,10 @@ export async function getAllAssets(): Promise<Asset[]> {
       throw new Error('Failed to fetch assets');
     }
   } catch (e) {
-    console.warn('Failed to fetch assets from API, falling back to localStorage', e);
+    console.warn(
+      'Failed to fetch assets from API, falling back to localStorage',
+      e,
+    );
     // Fallback to localStorage
     const data = read();
     if (data.length === 0 && !isInitialized()) {
@@ -124,7 +127,10 @@ export async function addAsset(asset: Omit<Asset, 'id'>): Promise<Asset> {
       throw new Error('Failed to create asset');
     }
   } catch (e) {
-    console.warn('Failed to add asset via API, falling back to localStorage', e);
+    console.warn(
+      'Failed to add asset via API, falling back to localStorage',
+      e,
+    );
     // Fallback
     if (!isInitialized()) {
       markInitialized();

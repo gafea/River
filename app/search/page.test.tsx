@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from '@testing-library/react';
 import SearchPage from './page';
 import { getAllAssets } from '@/lib/store';
 import { calculateCurrentValue } from '@/lib/utils';
@@ -85,7 +91,7 @@ describe('SearchPage', () => {
     });
 
     const input = screen.getByPlaceholderText(/Search by asset name/i);
-    
+
     await act(async () => {
       fireEvent.change(input, { target: { value: 'Laptop' } });
     });
@@ -93,7 +99,7 @@ describe('SearchPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/Found 1 asset.*matching "Laptop"/)).toBeTruthy();
     });
-    
+
     expect(screen.getByText('Laptop')).toBeTruthy();
     expect(screen.queryByText('Phone')).toBeNull();
   });
@@ -104,13 +110,15 @@ describe('SearchPage', () => {
     });
 
     const input = screen.getByPlaceholderText(/Search by asset name/i);
-    
+
     await act(async () => {
       fireEvent.change(input, { target: { value: 'NonExistent' } });
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/No assets found matching "NonExistent"/)).toBeTruthy();
+      expect(
+        screen.getByText(/No assets found matching "NonExistent"/),
+      ).toBeTruthy();
     });
   });
 

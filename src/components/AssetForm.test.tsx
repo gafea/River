@@ -27,7 +27,7 @@ describe('AssetForm', () => {
 
   it('renders form fields', () => {
     render(<AssetForm />);
-    
+
     expect(screen.getByLabelText(/Name/i)).toBeTruthy();
     expect(screen.getByLabelText(/Description/i)).toBeTruthy();
     expect(screen.getByLabelText(/Purchase Value/i)).toBeTruthy();
@@ -72,7 +72,9 @@ describe('AssetForm', () => {
     // Based on the code, it sets errors state which is passed to Field validationMessage
     // We can check if the error text appears
     expect(screen.getByText('Name is required.')).toBeTruthy();
-    expect(screen.getByText('Purchase value must be greater than 0.')).toBeTruthy();
+    expect(
+      screen.getByText('Purchase value must be greater than 0.'),
+    ).toBeTruthy();
   });
 
   it('validates purchase date not in future', async () => {
@@ -90,7 +92,9 @@ describe('AssetForm', () => {
       await ref.current?.submit();
     });
 
-    expect(screen.getByText('Purchase date cannot be in the future.')).toBeTruthy();
+    expect(
+      screen.getByText('Purchase date cannot be in the future.'),
+    ).toBeTruthy();
   });
 
   it('submits valid form data for new asset', async () => {
@@ -99,10 +103,16 @@ describe('AssetForm', () => {
     render(<AssetForm ref={ref} onSaved={onSaved} />);
 
     // Fill form
-    fireEvent.change(screen.getByLabelText(/Name/i), { target: { value: 'New Asset' } });
-    fireEvent.change(screen.getByLabelText(/Purchase Value/i), { target: { value: '500' } });
-    fireEvent.change(screen.getByLabelText(/Expected Life/i), { target: { value: '104' } });
-    
+    fireEvent.change(screen.getByLabelText(/Name/i), {
+      target: { value: 'New Asset' },
+    });
+    fireEvent.change(screen.getByLabelText(/Purchase Value/i), {
+      target: { value: '500' },
+    });
+    fireEvent.change(screen.getByLabelText(/Expected Life/i), {
+      target: { value: '104' },
+    });
+
     // Mock addAsset response
     const newAsset = { id: 'new-1', name: 'New Asset', purchaseValue: 500 };
     (addAsset as any).mockResolvedValue(newAsset);
@@ -111,11 +121,13 @@ describe('AssetForm', () => {
       await ref.current?.submit();
     });
 
-    expect(addAsset).toHaveBeenCalledWith(expect.objectContaining({
-      name: 'New Asset',
-      purchaseValue: 500,
-      expectedLifeWeeks: 104,
-    }));
+    expect(addAsset).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'New Asset',
+        purchaseValue: 500,
+        expectedLifeWeeks: 104,
+      }),
+    );
     expect(onSaved).toHaveBeenCalledWith(newAsset);
   });
 
@@ -128,13 +140,15 @@ describe('AssetForm', () => {
       purchaseDate: '2023-01-01',
       tags: [],
     };
-    
+
     const ref = { current: null } as any;
     const onSaved = vi.fn();
     render(<AssetForm asset={asset} ref={ref} onSaved={onSaved} />);
 
     // Change name
-    fireEvent.change(screen.getByLabelText(/Name/i), { target: { value: 'New Name' } });
+    fireEvent.change(screen.getByLabelText(/Name/i), {
+      target: { value: 'New Name' },
+    });
 
     // Mock updateAsset
     (updateAsset as any).mockResolvedValue({ ...asset, name: 'New Name' });
@@ -143,10 +157,12 @@ describe('AssetForm', () => {
       await ref.current?.submit();
     });
 
-    expect(updateAsset).toHaveBeenCalledWith(expect.objectContaining({
-      id: '1',
-      name: 'New Name',
-    }));
+    expect(updateAsset).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: '1',
+        name: 'New Name',
+      }),
+    );
   });
 
   it('handles events addition and removal', async () => {
@@ -163,9 +179,9 @@ describe('AssetForm', () => {
     // The "Add Event" is a button, and the delete icon is a button.
     // Let's assume the last button is the delete button for the row if it's the only row.
     // Or we can check if the table row exists.
-    
+
     const rows = screen.getAllByRole('row');
     // Header row + 1 data row
-    expect(rows.length).toBe(2); 
+    expect(rows.length).toBe(2);
   });
 });

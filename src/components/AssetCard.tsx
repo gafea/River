@@ -106,7 +106,9 @@ export default function AssetCard({
             right: 0,
             bottom: 0,
             backdropFilter: 'blur(20px)',
-            backgroundColor: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.8)',
+            backgroundColor: isDark
+              ? 'rgba(0, 0, 0, 0.7)'
+              : 'rgba(255, 255, 255, 0.8)',
             zIndex: 0,
           }}
         />

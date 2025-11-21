@@ -1,5 +1,11 @@
 'use client';
-import { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
+import {
+  useState,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+} from 'react';
 import { addAsset, updateAsset, getTagDefaults } from '@/lib/store';
 import { Asset, AssetEvent } from '@/lib/types';
 import {
@@ -210,7 +216,12 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
           const updated: Asset = { ...savedAsset, ...assetData };
           await updateAsset(updated);
           setSavedAsset(updated);
-        } else if (!creationInFlightRef.current && assetData.name && assetData.purchaseValue > 0 && assetData.expectedLifeWeeks > 0) {
+        } else if (
+          !creationInFlightRef.current &&
+          assetData.name &&
+          assetData.purchaseValue > 0 &&
+          assetData.expectedLifeWeeks > 0
+        ) {
           // Create new asset once minimal required fields are valid
           creationInFlightRef.current = true;
           try {
@@ -230,7 +241,18 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
 
     return () => window.clearTimeout(debounceRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [name, description, purchaseValue, expectedLifeWeeks, purchaseDate, tags, photoDataUrl, terminalPrice, events, errors]);
+  }, [
+    name,
+    description,
+    purchaseValue,
+    expectedLifeWeeks,
+    purchaseDate,
+    tags,
+    photoDataUrl,
+    terminalPrice,
+    events,
+    errors,
+  ]);
 
   useImperativeHandle(
     ref,
@@ -243,7 +265,13 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
   return (
     <div>
       {saving && (
-        <div style={{ fontSize: 12, color: 'var(--colorNeutralForeground3)', marginBottom: 8 }}>
+        <div
+          style={{
+            fontSize: 12,
+            color: 'var(--colorNeutralForeground3)',
+            marginBottom: 8,
+          }}
+        >
           Autosaving...
         </div>
       )}

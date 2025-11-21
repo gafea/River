@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   const res = NextResponse.next();
-  const session = await getIronSession(request, res, sessionOptions) as any;
+  const session = (await getIronSession(request, res, sessionOptions)) as any;
 
   if (!session.userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -18,7 +18,10 @@ export async function GET(request: NextRequest) {
       session.destroy();
       await session.save();
     } catch {}
-    return NextResponse.json({ error: 'User not found. Please re-authenticate.' }, { status: 401 });
+    return NextResponse.json(
+      { error: 'User not found. Please re-authenticate.' },
+      { status: 401 },
+    );
   }
 
   const assets = await prisma.asset.findMany({
@@ -26,7 +29,7 @@ export async function GET(request: NextRequest) {
   });
 
   // Convert to the expected format
-  const formatted = assets.map(asset => ({
+  const formatted = assets.map((asset) => ({
     ...asset,
     tags: JSON.parse(asset.tags),
     events: asset.events ? JSON.parse(asset.events) : undefined,
@@ -37,7 +40,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const res = NextResponse.next();
-  const session = await getIronSession(request, res, sessionOptions) as any;
+  const session = (await getIronSession(request, res, sessionOptions)) as any;
 
   if (!session.userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -50,7 +53,10 @@ export async function POST(request: NextRequest) {
       session.destroy();
       await session.save();
     } catch {}
-    return NextResponse.json({ error: 'User not found. Please re-authenticate.' }, { status: 401 });
+    return NextResponse.json(
+      { error: 'User not found. Please re-authenticate.' },
+      { status: 401 },
+    );
   }
 
   const body = await request.json();
@@ -92,7 +98,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(formatted);
   } catch (e: any) {
     if (e.code === 'P2002') {
-      return NextResponse.json({ error: 'Duplicate asset id' }, { status: 409 });
+      return NextResponse.json(
+        { error: 'Duplicate asset id' },
+        { status: 409 },
+      );
     }
     if (e.code === 'P2003') {
       // Foreign key violation => userId reference invalid; force re-auth
@@ -100,9 +109,15 @@ export async function POST(request: NextRequest) {
         session.destroy();
         await session.save();
       } catch {}
-      return NextResponse.json({ error: 'User reference invalid. Please re-authenticate.' }, { status: 409 });
+      return NextResponse.json(
+        { error: 'User reference invalid. Please re-authenticate.' },
+        { status: 409 },
+      );
     }
     console.error('Asset create failed', e);
-    return NextResponse.json({ error: 'Failed to create asset' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to create asset' },
+      { status: 500 },
+    );
   }
 }

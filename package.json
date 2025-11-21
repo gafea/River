@@ -9,7 +9,9 @@
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\""
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "postinstall": "prisma generate",
+    "db:setup": "prisma migrate dev"
   },
   "dependencies": {
     "@fluentui/react-components": "^9.72.7",

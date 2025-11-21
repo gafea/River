@@ -6,7 +6,11 @@ import { prisma } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   const response = NextResponse.next();
-  const session = await getIronSession(request, response, sessionOptions) as any;
+  const session = (await getIronSession(
+    request,
+    response,
+    sessionOptions,
+  )) as any;
 
   if (!session.challenge) {
     return NextResponse.json({ error: 'No challenge' }, { status: 400 });
@@ -19,7 +23,10 @@ export async function POST(request: NextRequest) {
   });
 
   if (!credential) {
-    return NextResponse.json({ error: 'Credential not found' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Credential not found' },
+      { status: 400 },
+    );
   }
 
   let verification;
@@ -38,7 +45,10 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: `Verification failed: ${(error as Error).message}` }, { status: 400 });
+    return NextResponse.json(
+      { error: `Verification failed: ${(error as Error).message}` },
+      { status: 400 },
+    );
   }
 
   const { verified, authenticationInfo } = verification;
@@ -59,7 +69,13 @@ export async function POST(request: NextRequest) {
 
   await session.save();
 
-  const finalResponse = NextResponse.json({ success: true, userId: credential.userId });
-  finalResponse.headers.set('Set-Cookie', response.headers.get('Set-Cookie') || '');
+  const finalResponse = NextResponse.json({
+    success: true,
+    userId: credential.userId,
+  });
+  finalResponse.headers.set(
+    'Set-Cookie',
+    response.headers.get('Set-Cookie') || '',
+  );
   return finalResponse;
 }

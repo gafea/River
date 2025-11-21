@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { ReactNode, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import Navigation from '@/components/Navigation';

@@ -3,10 +3,13 @@ import { sessionOptions } from '@/lib/session';
 import { getIronSession } from 'iron-session';
 import { prisma } from '@/lib/db';
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const { id } = await params;
   const res = NextResponse.next();
-  const session = await getIronSession(request, res, sessionOptions) as any;
+  const session = (await getIronSession(request, res, sessionOptions)) as any;
 
   if (!session.userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -44,10 +47,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   return NextResponse.json(formatted);
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const { id } = await params;
   const res = NextResponse.next();
-  const session = await getIronSession(request, res, sessionOptions) as any;
+  const session = (await getIronSession(request, res, sessionOptions)) as any;
 
   if (!session.userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

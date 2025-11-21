@@ -1,7 +1,16 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from 'react';
+import {
+  startRegistration,
+  startAuthentication,
+} from '@simplewebauthn/browser';
 import { clearAllUserData } from '@/lib/store';
 
 interface AuthContextType {
@@ -33,7 +42,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async () => {
     try {
       // Start registration
-      const startRes = await fetch('/api/auth/register/start', { method: 'POST' });
+      const startRes = await fetch('/api/auth/register/start', {
+        method: 'POST',
+      });
       if (!startRes.ok) throw new Error('Failed to start registration');
       const options = await startRes.json();
 
@@ -104,7 +115,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userId, login, register, logout, authenticate }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, userId, login, register, logout, authenticate }}
+    >
       {children}
     </AuthContext.Provider>
   );

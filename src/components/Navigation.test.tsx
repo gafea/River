@@ -22,8 +22,8 @@ vi.mock('@/lib/store', () => ({
 
 vi.mock('@/lib/utils', () => ({
   groupAssetsByTag: vi.fn((assets) => ({
-    'IT': [assets[0]],
-    'Office': [assets[1]],
+    IT: [assets[0]],
+    Office: [assets[1]],
   })),
 }));
 
@@ -34,7 +34,7 @@ vi.mock('@/components/AuthProvider', () => ({
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -120,11 +120,13 @@ describe('Navigation', () => {
     });
 
     fireEvent.click(screen.getByText('IT (1)'));
-    // The mock implementation of groupAssetsByTag returns mocked data, 
+    // The mock implementation of groupAssetsByTag returns mocked data,
     // but the click handler constructs the URL based on the tag name.
     // We need to check if push was called with the correct URL.
     // Note: URLSearchParams might encode characters, so we check for containment or exact match if simple.
-    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('/dashboard?tag=IT'));
+    expect(mockPush).toHaveBeenCalledWith(
+      expect.stringContaining('/dashboard?tag=IT'),
+    );
   });
 
   it('calls logout when logout button clicked', async () => {

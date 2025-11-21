@@ -5,34 +5,40 @@ A modern web application for tracking and managing depreciating assets with real
 ## Features
 
 ### 🏷️ Asset Tracking
+
 - Track assets with purchase value, expected lifespan, and depreciation calculations
 - Automatic linear depreciation calculations
 - Real-time current value updates every minute
 - Support for terminal values (assets that retain value after depreciation)
 
 ### 📊 Interactive Charts
+
 - Visual depreciation charts with customizable time ranges
 - Event reference lines showing upgrades, repairs, and maintenance
 - Multi-line labels for better readability
 - Progress bars showing asset lifetime completion
 
 ### 🎯 Event Management
+
 - Record asset events (upgrades, repairs, maintenance)
 - Events affect depreciation calculations and total invested amounts
 - Chronological event sorting with visual indicators
 - Positive amounts display with "+" prefix
 
 ### 🏷️ Tag System
+
 - Organize assets with customizable tags
 - Filter and group assets by tags
 - Tag-based analytics and reporting
 
 ### 💾 Data Management
+
 - Import/export asset data as JSON
 - Local storage persistence
 - Data validation and error handling
 
 ### 🎨 Modern UI
+
 - Built with Fluent UI components
 - Responsive design for all screen sizes
 - Dark/light theme support
@@ -58,17 +64,21 @@ A modern web application for tracking and managing depreciating assets with real
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd tag
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
+npm run db:setup
 ```
 
 3. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -78,11 +88,13 @@ npm run dev
 ### Testing
 
 Run the test suite:
+
 ```bash
 npm test
 ```
 
 Run tests in watch mode:
+
 ```bash
 npm run test:watch
 ```
@@ -97,6 +109,7 @@ npm start
 ### Code Formatting
 
 Format all files:
+
 ```bash
 npm run format
 ```
@@ -128,7 +141,9 @@ tag/
 ## Key Components
 
 ### AssetCard
+
 Displays asset information with:
+
 - Current value (auto-updates every minute)
 - Depreciation progress bar
 - Lifetime percentage
@@ -137,7 +152,9 @@ Displays asset information with:
 - Click navigation to detail view
 
 ### AssetForm
+
 Comprehensive form for creating and editing assets:
+
 - Basic information (name, description, value)
 - Depreciation settings (expected life, terminal value)
 - Tag management
@@ -145,7 +162,9 @@ Comprehensive form for creating and editing assets:
 - Event tracking
 
 ### Dashboard
+
 Main application view featuring:
+
 - Asset overview cards
 - Import/export functionality
 - Search and filtering
@@ -154,14 +173,18 @@ Main application view featuring:
 ## Calculation Logic
 
 ### Depreciation
+
 Assets depreciate linearly over their expected lifespan:
+
 ```
 daily_depreciation = (purchase_value - terminal_value) / (expected_life_weeks * 7)
 current_value = purchase_value - (daily_depreciation * days_passed)
 ```
 
 ### Events
+
 Asset events modify the total invested amount:
+
 ```
 total_invested = purchase_value + Σ(event_amounts)
 ```
@@ -173,18 +196,23 @@ Events also affect depreciation calculations by changing the asset's effective v
 ### Utility Functions
 
 #### `calculateCurrentValue(asset, events?, currentDate?)`
+
 Calculates the current depreciated value of an asset.
 
 #### `calculateTotalInvested(asset)`
+
 Returns total amount invested including all events.
 
 #### `calculateDailyDepreciation(asset)`
+
 Returns daily depreciation rate.
 
 #### `formatCurrency(amount)`
+
 Formats numbers as currency strings.
 
 #### `weeksBetween(startDate, endDate)`
+
 Calculates weeks between two dates.
 
 ### Data Types

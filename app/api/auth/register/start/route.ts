@@ -5,7 +5,11 @@ import { getIronSession } from 'iron-session';
 
 export async function POST(request: NextRequest) {
   const response = NextResponse.next();
-  const session = await getIronSession(request, response, sessionOptions) as any;
+  const session = (await getIronSession(
+    request,
+    response,
+    sessionOptions,
+  )) as any;
 
   const pendingUserId = crypto.randomUUID();
 
@@ -27,6 +31,9 @@ export async function POST(request: NextRequest) {
   await session.save();
 
   const finalResponse = NextResponse.json(options);
-  finalResponse.headers.set('Set-Cookie', response.headers.get('Set-Cookie') || '');
+  finalResponse.headers.set(
+    'Set-Cookie',
+    response.headers.get('Set-Cookie') || '',
+  );
   return finalResponse;
 }

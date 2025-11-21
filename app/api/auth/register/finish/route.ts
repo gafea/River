@@ -6,10 +6,17 @@ import { prisma } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   const response = NextResponse.next();
-  const session = await getIronSession(request, response, sessionOptions) as any;
+  const session = (await getIronSession(
+    request,
+    response,
+    sessionOptions,
+  )) as any;
 
   if (!session.challenge || !session.pendingUserId) {
-    return NextResponse.json({ error: 'No challenge or pending user ID' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'No challenge or pending user ID' },
+      { status: 400 },
+    );
   }
 
   const body = await request.json();
@@ -24,7 +31,10 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: `Verification failed: ${(error as Error).message}` }, { status: 400 });
+    return NextResponse.json(
+      { error: `Verification failed: ${(error as Error).message}` },
+      { status: 400 },
+    );
   }
 
   const { verified, registrationInfo } = verification;
@@ -43,7 +53,9 @@ export async function POST(request: NextRequest) {
   await prisma.credential.create({
     data: {
       credentialId: registrationInfo.credential.id,
-      publicKey: Buffer.from(registrationInfo.credential.publicKey).toString('base64'),
+      publicKey: Buffer.from(registrationInfo.credential.publicKey).toString(
+        'base64',
+      ),
       counter: registrationInfo.credential.counter,
       transports: JSON.stringify(registrationInfo.credential.transports || []),
       userId: user.id,
@@ -58,6 +70,9 @@ export async function POST(request: NextRequest) {
   await session.save();
 
   const finalResponse = NextResponse.json({ success: true, userId: user.id });
-  finalResponse.headers.set('Set-Cookie', response.headers.get('Set-Cookie') || '');
+  finalResponse.headers.set(
+    'Set-Cookie',
+    response.headers.get('Set-Cookie') || '',
+  );
   return finalResponse;
 }

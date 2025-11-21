@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  cleanup,
+  waitFor,
+} from '@testing-library/react';
 import AssetCard from './AssetCard';
 import type { Asset } from '@/lib/types';
 
@@ -14,7 +20,7 @@ vi.mock('next/navigation', () => ({
 // Mock window.matchMedia for theme detection
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false, // Default to light mode
     media: query,
     onchange: null,
@@ -36,7 +42,13 @@ vi.mock('@/lib/utils', () => ({
 }));
 
 // Import the mocked functions
-const { formatCurrency, weeksBetween, calculateTotalInvested, calculateDailyDepreciation, calculateCurrentValue } = vi.mocked(await import('@/lib/utils'));
+const {
+  formatCurrency,
+  weeksBetween,
+  calculateTotalInvested,
+  calculateDailyDepreciation,
+  calculateCurrentValue,
+} = vi.mocked(await import('@/lib/utils'));
 
 describe('AssetCard', () => {
   const mockAsset: Asset = {
@@ -193,9 +205,12 @@ describe('AssetCard', () => {
     mockDateNow.mockReturnValue(Date.parse('2025-11-09T12:01:00Z'));
 
     // Wait for the update (the interval is 60000ms, but we can wait for DOM update)
-    await waitFor(() => {
-      expect(mockedCalculateCurrentValue).toHaveBeenCalled();
-    }, { timeout: 100 });
+    await waitFor(
+      () => {
+        expect(mockedCalculateCurrentValue).toHaveBeenCalled();
+      },
+      { timeout: 100 },
+    );
 
     // Note: In a real test environment, we'd need to mock setInterval properly
     // This test demonstrates the structure for testing auto-updates
@@ -208,7 +223,11 @@ describe('AssetCard', () => {
     };
     render(<AssetCard asset={assetLongName} currentValue={960} />);
 
-    expect(screen.getByText('Very Long Asset Name That Might Cause Layout Issues If Not Handled Properly')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'Very Long Asset Name That Might Cause Layout Issues If Not Handled Properly',
+      ),
+    ).toBeTruthy();
   });
 
   it('handles assets with zero purchase value', () => {

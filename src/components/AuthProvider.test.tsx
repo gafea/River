@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { AuthProvider, useAuth } from './AuthProvider';
-import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
+import {
+  startRegistration,
+  startAuthentication,
+} from '@simplewebauthn/browser';
 
 // Mock fetch
 global.fetch = vi.fn();
@@ -62,7 +65,8 @@ describe('AuthProvider', () => {
           json: () => Promise.resolve({ success: true, userId: 'user-123' }),
         })
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({ authenticated: true, userId: 'user-123' }),
+          json: () =>
+            Promise.resolve({ authenticated: true, userId: 'user-123' }),
         });
 
       mockedStartRegistration.mockResolvedValue(mockAttestationResponse);
@@ -74,7 +78,9 @@ describe('AuthProvider', () => {
       });
 
       expect(mockedStartRegistration).toHaveBeenCalledWith(mockOptions);
-      expect(global.fetch).toHaveBeenCalledWith('/api/auth/register/start', { method: 'POST' });
+      expect(global.fetch).toHaveBeenCalledWith('/api/auth/register/start', {
+        method: 'POST',
+      });
       expect(global.fetch).toHaveBeenCalledWith('/api/auth/register/finish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -99,7 +105,9 @@ describe('AuthProvider', () => {
         await result.current.register();
       });
 
-      expect(global.alert).toHaveBeenCalledWith('Registration failed: User cancelled');
+      expect(global.alert).toHaveBeenCalledWith(
+        'Registration failed: User cancelled',
+      );
     });
   });
 
@@ -129,7 +137,8 @@ describe('AuthProvider', () => {
           json: () => Promise.resolve({ success: true, userId: 'user-123' }),
         })
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({ authenticated: true, userId: 'user-123' }),
+          json: () =>
+            Promise.resolve({ authenticated: true, userId: 'user-123' }),
         });
 
       mockedStartAuthentication.mockResolvedValue(mockAssertionResponse);
@@ -141,7 +150,9 @@ describe('AuthProvider', () => {
       });
 
       expect(mockedStartAuthentication).toHaveBeenCalledWith(mockOptions);
-      expect(global.fetch).toHaveBeenCalledWith('/api/auth/login/start', { method: 'POST' });
+      expect(global.fetch).toHaveBeenCalledWith('/api/auth/login/start', {
+        method: 'POST',
+      });
       expect(global.fetch).toHaveBeenCalledWith('/api/auth/login/finish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -158,7 +169,9 @@ describe('AuthProvider', () => {
         json: () => Promise.resolve(mockOptions),
       });
 
-      mockedStartAuthentication.mockRejectedValue(new Error('Authentication failed'));
+      mockedStartAuthentication.mockRejectedValue(
+        new Error('Authentication failed'),
+      );
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -166,7 +179,9 @@ describe('AuthProvider', () => {
         await result.current.login();
       });
 
-      expect(global.alert).toHaveBeenCalledWith('Login failed: Authentication failed');
+      expect(global.alert).toHaveBeenCalledWith(
+        'Login failed: Authentication failed',
+      );
     });
   });
 
@@ -174,7 +189,8 @@ describe('AuthProvider', () => {
     it('should logout successfully', async () => {
       (global.fetch as any)
         .mockResolvedValueOnce({
-          json: () => Promise.resolve({ authenticated: true, userId: 'user-123' }),
+          json: () =>
+            Promise.resolve({ authenticated: true, userId: 'user-123' }),
         })
         .mockResolvedValueOnce({
           json: () => Promise.resolve({ success: true }),
@@ -186,13 +202,15 @@ describe('AuthProvider', () => {
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       // Wait for initial load
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       await act(async () => {
         await result.current.logout();
       });
 
-      expect(global.fetch).toHaveBeenCalledWith('/api/auth/logout', { method: 'POST' });
+      expect(global.fetch).toHaveBeenCalledWith('/api/auth/logout', {
+        method: 'POST',
+      });
       expect(global.fetch).toHaveBeenCalledWith('/api/auth/status');
     });
   });
@@ -205,7 +223,12 @@ describe('AuthProvider', () => {
         id: 'cred-id',
         rawId: 'raw-id',
         type: 'public-key' as const,
-        response: { clientDataJSON: 'x', authenticatorData: 'y', signature: 'z', userHandle: undefined },
+        response: {
+          clientDataJSON: 'x',
+          authenticatorData: 'y',
+          signature: 'z',
+          userHandle: undefined,
+        },
         clientExtensionResults: {},
       };
       const mockAttestationResponse = {
@@ -217,17 +240,35 @@ describe('AuthProvider', () => {
       };
 
       // Initial status unauthenticated
-      (global.fetch as any).mockResolvedValueOnce({ json: () => Promise.resolve({ authenticated: false }) });
+      (global.fetch as any).mockResolvedValueOnce({
+        json: () => Promise.resolve({ authenticated: false }),
+      });
       // login start
-      (global.fetch as any).mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockLoginOptions) });
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockLoginOptions),
+      });
       // login finish fails
-      (global.fetch as any).mockResolvedValueOnce({ ok: false, status: 400, json: () => Promise.resolve({ error: 'Invalid' }) });
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        json: () => Promise.resolve({ error: 'Invalid' }),
+      });
       // register start
-      (global.fetch as any).mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockRegisterOptions) });
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockRegisterOptions),
+      });
       // register finish ok
-      (global.fetch as any).mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ success: true, userId: 'user-abc' }) });
+      (global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ success: true, userId: 'user-abc' }),
+      });
       // status after register
-      (global.fetch as any).mockResolvedValueOnce({ json: () => Promise.resolve({ authenticated: true, userId: 'user-abc' }) });
+      (global.fetch as any).mockResolvedValueOnce({
+        json: () =>
+          Promise.resolve({ authenticated: true, userId: 'user-abc' }),
+      });
 
       mockedStartAuthentication.mockResolvedValue(mockAssertionResponse);
       mockedStartRegistration.mockResolvedValue(mockAttestationResponse);
@@ -239,7 +280,9 @@ describe('AuthProvider', () => {
 
       // Fallback should invoke registration path
       // Ensure both login and register start endpoints were attempted (fallback behavior)
-      const fetchCalls = (global.fetch as any).mock.calls.map((c: any[]) => c[0]);
+      const fetchCalls = (global.fetch as any).mock.calls.map(
+        (c: any[]) => c[0],
+      );
       expect(fetchCalls).toContain('/api/auth/login/start');
       expect(fetchCalls).toContain('/api/auth/register/start');
     });
