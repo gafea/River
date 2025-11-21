@@ -23,20 +23,22 @@ describe('store', () => {
   beforeEach(() => {
     // Clear localStorage mocks
     vi.clearAllMocks();
+    // Mock fetch to fail so we test the fallback logic (localStorage)
+    global.fetch = vi.fn().mockRejectedValue(new Error('API not available'));
   });
 
-  it('returns empty array when no assets stored', () => {
+  it('returns empty array when no assets stored', async () => {
     // Mock no assets and already initialized
     localStorageMock.getItem.mockImplementation((key) => {
       if (key === 'assets.v1') return null;
       if (key === 'assets.initialized') return 'true';
       return null;
     });
-    const assets = getAllAssets();
+    const assets = await getAllAssets();
     expect(assets).toEqual([]);
   });
 
-  it('returns stored assets', () => {
+  it('returns stored assets', async () => {
     const mockAssets: Asset[] = [
       {
         id: '1',
@@ -53,12 +55,12 @@ describe('store', () => {
       return null;
     });
 
-    const assets = getAllAssets();
+    const assets = await getAllAssets();
     expect(assets).toEqual(mockAssets);
     expect(assets[0].name).toBe('Test Asset');
   });
 
-  it('saves new asset', () => {
+  it('saves new asset', async () => {
     const newAssetData = {
       name: 'New Asset',
       purchaseValue: 500,
@@ -67,7 +69,7 @@ describe('store', () => {
       tags: ['electronics'],
     };
 
-    addAsset(newAssetData);
+    await addAsset(newAssetData);
 
     // Check that localStorage.setItem was called with the new asset
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
@@ -76,7 +78,7 @@ describe('store', () => {
     );
   });
 
-  it('updates existing asset', () => {
+  it('updates existing asset', async () => {
     const existingAsset: Asset = {
       id: '1',
       name: 'Old Name',
@@ -97,7 +99,7 @@ describe('store', () => {
       JSON.stringify([existingAsset]),
     );
 
-    updateAsset(updatedAsset);
+    await updateAsset(updatedAsset);
 
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
       'assets.v1',
@@ -105,7 +107,7 @@ describe('store', () => {
     );
   });
 
-  it('deletes asset by id', () => {
+  it('deletes asset by id', async () => {
     const assets: Asset[] = [
       {
         id: '1',
@@ -131,7 +133,7 @@ describe('store', () => {
       return null;
     });
 
-    deleteAsset('1');
+    await deleteAsset('1');
 
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
       'assets.v1',
@@ -139,7 +141,7 @@ describe('store', () => {
     );
   });
 
-  it('handles deleting non-existent asset', () => {
+  it('handles deleting non-existent asset', async () => {
     const assets: Asset[] = [
       {
         id: '1',
@@ -157,7 +159,7 @@ describe('store', () => {
       return null;
     });
 
-    deleteAsset('999'); // Non-existent ID
+    await deleteAsset('999'); // Non-existent ID
 
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
       'assets.v1',
@@ -165,7 +167,7 @@ describe('store', () => {
     );
   });
 
-  it('handles malformed JSON gracefully', () => {
+  it('handles malformed JSON gracefully', async () => {
     localStorageMock.getItem.mockImplementation((key) => {
       if (key === 'assets.v1') return 'invalid json';
       if (key === 'assets.initialized') return 'true';
@@ -173,11 +175,10 @@ describe('store', () => {
     });
 
     // Should not throw and return empty array
-    expect(() => getAllAssets()).not.toThrow();
-    expect(getAllAssets()).toEqual([]);
+    await expect(getAllAssets()).resolves.toEqual([]);
   });
 
-  it('generates unique IDs for new assets', () => {
+  it('generates unique IDs for new assets', async () => {
     const asset1Data = {
       name: 'Asset 1',
       purchaseValue: 100,
@@ -194,8 +195,8 @@ describe('store', () => {
       tags: [],
     };
 
-    const addedAsset1 = addAsset(asset1Data);
-    const addedAsset2 = addAsset(asset2Data);
+    const addedAsset1 = await addAsset(asset1Data);
+    const addedAsset2 = await addAsset(asset2Data);
 
     expect(addedAsset1.id).not.toBe('');
     expect(addedAsset2.id).not.toBe('');

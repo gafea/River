@@ -1,5 +1,5 @@
 'use client';
-import AssetForm from '@/src/components/AssetForm';
+import AssetForm from '@/components/AssetForm';
 import { Text } from '@fluentui/react-components';
 
 export default function NewAssetPage() {

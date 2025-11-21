@@ -61,15 +61,26 @@ function markInitialized() {
   window.localStorage.setItem(INITIALIZED_KEY, 'true');
 }
 
-export function getAllAssets(): Asset[] {
-  const data = read();
-
-  // Only seed demo data if this is the first time ever (not initialized)
-  if (data.length === 0 && !isInitialized()) {
-    return seed();
+export async function getAllAssets(): Promise<Asset[]> {
+  try {
+    const res = await fetch('/api/assets');
+    if (res.ok) {
+      return res.json();
+    } else if (res.status === 401) {
+      // Not authenticated, return empty
+      return [];
+    } else {
+      throw new Error('Failed to fetch assets');
+    }
+  } catch (e) {
+    console.warn('Failed to fetch assets from API, falling back to localStorage', e);
+    // Fallback to localStorage
+    const data = read();
+    if (data.length === 0 && !isInitialized()) {
+      return seed();
+    }
+    return data;
   }
-
-  return data;
 }
 
 function seed(): Asset[] {
@@ -100,30 +111,80 @@ function seed(): Asset[] {
   return demo;
 }
 
-export function addAsset(asset: Omit<Asset, 'id'>): Asset {
-  // Mark as initialized when first asset is added
-  if (!isInitialized()) {
-    markInitialized();
+export async function addAsset(asset: Omit<Asset, 'id'>): Promise<Asset> {
+  try {
+    const res = await fetch('/api/assets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(asset),
+    });
+    if (res.ok) {
+      return res.json();
+    } else {
+      throw new Error('Failed to create asset');
+    }
+  } catch (e) {
+    console.warn('Failed to add asset via API, falling back to localStorage', e);
+    // Fallback
+    if (!isInitialized()) {
+      markInitialized();
+    }
+    const all = read();
+    const newAsset: Asset = { ...asset, id: crypto.randomUUID() };
+    write([newAsset, ...all]);
+    return newAsset;
   }
-
-  const all = getAllAssets();
-  const newAsset: Asset = { ...asset, id: crypto.randomUUID() };
-  write([newAsset, ...all]);
-  return newAsset;
 }
 
-export function updateAsset(updated: Asset) {
-  const all = getAllAssets();
-  write(all.map((a) => (a.id === updated.id ? updated : a)));
+export async function updateAsset(updated: Asset) {
+  try {
+    const res = await fetch(`/api/assets/${updated.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated),
+    });
+    if (!res.ok) {
+      throw new Error('Failed to update asset');
+    }
+  } catch (e) {
+    console.warn('Failed to update asset via API', e);
+    // Fallback
+    const all = read();
+    write(all.map((a) => (a.id === updated.id ? updated : a)));
+  }
 }
 
-export function deleteAsset(id: string) {
-  const all = getAllAssets();
-  write(all.filter((a) => a.id !== id));
+export async function deleteAsset(id: string) {
+  try {
+    const res = await fetch(`/api/assets/${id}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) {
+      throw new Error('Failed to delete asset');
+    }
+  } catch (e) {
+    console.warn('Failed to delete asset via API', e);
+    // Fallback
+    const all = read();
+    write(all.filter((a) => a.id !== id));
+  }
 }
 
 export function clearAllAssets() {
   write([]);
+}
+
+export function clearAllUserData() {
+  // Clear assets
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.removeItem('assets.v1');
+      window.localStorage.removeItem('assets.initialized');
+      window.localStorage.removeItem('tagDefaults.v1');
+    } catch (e) {
+      console.warn('Failed to clear user data', e);
+    }
+  }
 }
 
 export function getTagDefaults(): Record<string, number> {

@@ -1,7 +1,7 @@
 'use client';
 import { useParams } from 'next/navigation';
-import { getAllAssets } from '@/src/lib/store';
-import { calculateCurrentValue, formatCurrency } from '@/src/lib/utils';
+import { getAllAssets } from '@/lib/store';
+import { calculateCurrentValue, formatCurrency } from '@/lib/utils';
 import {
   Text,
   Card,
@@ -22,7 +22,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { useMemo, useRef, useState, useEffect } from 'react';
-import { deleteAsset } from '@/src/lib/store';
+import { deleteAsset } from '@/lib/store';
 import {
   Edit24Regular,
   Delete24Regular,
@@ -38,12 +38,13 @@ import {
   DialogContent,
   DialogActions,
 } from '@fluentui/react-components';
-import AssetForm, { type AssetFormHandle } from '@/src/components/AssetForm';
+import AssetForm, { type AssetFormHandle } from '@/components/AssetForm';
+import type { Asset } from '@/lib/types';
 
 export default function AssetDetailPage() {
   const params = useParams();
   const id = params.id as string;
-  const assets = getAllAssets();
+  const [assets, setAssets] = useState<Asset[]>([]);
   const asset = assets.find((a) => a.id === id);
   const router = useRouter();
 
@@ -55,6 +56,11 @@ export default function AssetDetailPage() {
   // Mark as client-side after hydration
   useEffect(() => {
     setIsClient(true);
+    const loadAssets = async () => {
+      const allAssets = await getAllAssets();
+      setAssets(allAssets);
+    };
+    loadAssets();
   }, []);
 
   const xAxisTicks = useMemo(() => {
@@ -133,8 +139,8 @@ export default function AssetDetailPage() {
   const todayDate = new Date().toISOString().slice(0, 10);
   const todayTimestamp = new Date().getTime();
 
-  const handleDelete = () => {
-    deleteAsset(id);
+  const handleDelete = async () => {
+    await deleteAsset(id);
     router.push('/dashboard');
   };
 

@@ -14,7 +14,14 @@
   "dependencies": {
     "@fluentui/react-components": "^9.72.7",
     "@fluentui/react-icons": "^2.0.315",
+    "@prisma/client": "^6.19.0",
+    "@simplewebauthn/browser": "^13.2.2",
+    "@simplewebauthn/server": "^13.2.2",
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^12.4.5",
+    "iron-session": "^8.0.4",
     "next": "^16.0.3",
+    "prisma": "^6.19.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "recharts": "^3.4.1"

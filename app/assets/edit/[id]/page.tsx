@@ -1,14 +1,24 @@
 'use client';
-import AssetForm from '@/src/components/AssetForm';
+import AssetForm from '@/components/AssetForm';
 import { Text } from '@fluentui/react-components';
-import { getAllAssets } from '@/src/lib/store';
+import { getAllAssets } from '@/lib/store';
 import { useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import type { Asset } from '@/lib/types';
 
 export default function EditAssetPage() {
   const params = useParams();
   const id = params.id as string;
-  const assets = getAllAssets();
+  const [assets, setAssets] = useState<Asset[]>([]);
   const asset = assets.find((a) => a.id === id);
+
+  useEffect(() => {
+    const loadAssets = async () => {
+      const allAssets = await getAllAssets();
+      setAssets(allAssets);
+    };
+    loadAssets();
+  }, []);
 
   if (!asset) {
     return (

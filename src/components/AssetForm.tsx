@@ -1,7 +1,7 @@
 'use client';
-import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { addAsset, updateAsset, getTagDefaults } from '@/src/lib/store';
-import { Asset, AssetEvent } from '@/src/lib/types';
+import { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
+import { addAsset, updateAsset, getTagDefaults } from '@/lib/store';
+import { Asset, AssetEvent } from '@/lib/types';
 import {
   Input,
   Textarea,
@@ -18,7 +18,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { Add24Regular, Delete24Regular } from '@fluentui/react-icons';
 
-export type AssetFormHandle = { submit: () => void; isValid: boolean };
+export type AssetFormHandle = { submit: () => Promise<void>; isValid: boolean };
 
 interface Props {
   asset?: Asset;
@@ -49,6 +49,10 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
   const [events, setEvents] = useState<AssetEvent[]>([]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const creationInFlightRef = useRef(false);
+  const debounceRef = useRef<number | undefined>(undefined);
+  const [savedAsset, setSavedAsset] = useState<Asset | undefined>(asset);
 
   function validate(
     fields?: Partial<{
@@ -133,7 +137,7 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
     reader.readAsDataURL(file);
   }
 
-  function submit() {
+  async function submit() {
     if (!validate()) return;
 
     const assetData = {
@@ -153,11 +157,13 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
 
     try {
       let saved: Asset;
-      if (isEdit && asset) {
-        saved = { ...asset, ...assetData };
-        updateAsset(saved);
+      if (savedAsset) {
+        saved = { ...savedAsset, ...assetData };
+        await updateAsset(saved);
+        setSavedAsset(saved);
       } else {
-        saved = addAsset(assetData);
+        saved = await addAsset(assetData);
+        setSavedAsset(saved);
       }
 
       if (onSaved) {
@@ -175,17 +181,72 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
       }
     }
   }
+  // Autosave when editing or after initial creation
+  useEffect(() => {
+    const valid = Object.keys(errors).length === 0;
+    if (!valid) return;
+    // Build assetData
+    const assetData = {
+      name: name.trim(),
+      description: description.trim() || undefined,
+      purchaseValue: Number(purchaseValue),
+      expectedLifeWeeks: Number(expectedLifeWeeks),
+      purchaseDate,
+      tags: tags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean),
+      photoDataUrl,
+      terminalPrice: terminalPrice > 0 ? terminalPrice : undefined,
+      events: events.length > 0 ? events : undefined,
+    };
+
+    // Debounce saves to avoid excessive network traffic
+    window.clearTimeout(debounceRef.current);
+    debounceRef.current = window.setTimeout(async () => {
+      try {
+        setSaving(true);
+        if (savedAsset) {
+          const updated: Asset = { ...savedAsset, ...assetData };
+          await updateAsset(updated);
+          setSavedAsset(updated);
+        } else if (!creationInFlightRef.current && assetData.name && assetData.purchaseValue > 0 && assetData.expectedLifeWeeks > 0) {
+          // Create new asset once minimal required fields are valid
+          creationInFlightRef.current = true;
+          try {
+            const created = await addAsset(assetData);
+            setSavedAsset(created);
+            onSaved?.(created);
+          } finally {
+            creationInFlightRef.current = false;
+          }
+        }
+      } catch (e) {
+        // Swallow autosave errors; manual submit will surface
+      } finally {
+        setSaving(false);
+      }
+    }, 800);
+
+    return () => window.clearTimeout(debounceRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, description, purchaseValue, expectedLifeWeeks, purchaseDate, tags, photoDataUrl, terminalPrice, events, errors]);
 
   useImperativeHandle(
     ref,
     () => ({ submit, isValid: Object.keys(errors).length === 0 }),
-    [errors, submit],
+    [errors],
   );
 
   const today = new Date().toISOString().slice(0, 10);
 
   return (
     <div>
+      {saving && (
+        <div style={{ fontSize: 12, color: 'var(--colorNeutralForeground3)', marginBottom: 8 }}>
+          Autosaving...
+        </div>
+      )}
       <Field
         label="Name"
         required

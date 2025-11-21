@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import AssetCard from './AssetCard';
-import type { Asset } from '@/src/lib/types';
+import type { Asset } from '@/lib/types';
 
 // Mock next/navigation
 const mockPush = vi.fn();
@@ -27,7 +27,7 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock the utils functions
-vi.mock('@/src/lib/utils', () => ({
+vi.mock('@/lib/utils', () => ({
   formatCurrency: vi.fn((value: number) => `$${value.toLocaleString()}`),
   weeksBetween: vi.fn(() => 26), // Mock 26 weeks passed
   calculateTotalInvested: vi.fn(() => 1200), // Mock total invested
@@ -36,7 +36,7 @@ vi.mock('@/src/lib/utils', () => ({
 }));
 
 // Import the mocked functions
-const { formatCurrency, weeksBetween, calculateTotalInvested, calculateDailyDepreciation, calculateCurrentValue } = vi.mocked(await import('@/src/lib/utils'));
+const { formatCurrency, weeksBetween, calculateTotalInvested, calculateDailyDepreciation, calculateCurrentValue } = vi.mocked(await import('@/lib/utils'));
 
 describe('AssetCard', () => {
   const mockAsset: Asset = {

@@ -5,14 +5,14 @@ import {
   Text,
   ProgressBar,
 } from '@fluentui/react-components';
-import { Asset } from '@/src/lib/types';
+import { Asset } from '@/lib/types';
 import {
   formatCurrency,
   weeksBetween,
   calculateTotalInvested,
   calculateDailyDepreciation,
   calculateCurrentValue,
-} from '@/src/lib/utils';
+} from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 

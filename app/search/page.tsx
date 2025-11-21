@@ -1,9 +1,9 @@
 'use client';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getAllAssets } from '@/src/lib/store';
-import { calculateCurrentValue } from '@/src/lib/utils';
-import AssetCard from '@/src/components/AssetCard';
+import { getAllAssets } from '@/lib/store';
+import { calculateCurrentValue } from '@/lib/utils';
+import AssetCard from '@/components/AssetCard';
 import { Text, Input, InputOnChangeData } from '@fluentui/react-components';
 import { Suspense } from 'react';
 
@@ -22,7 +22,11 @@ function SearchContent() {
 
   // Load assets on client side only
   useEffect(() => {
-    setAssets(getAllAssets());
+    const loadAssets = async () => {
+      const allAssets = await getAllAssets();
+      setAssets(allAssets);
+    };
+    loadAssets();
   }, []);
 
   // Update URL when search term changes (debounced)

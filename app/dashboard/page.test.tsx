@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getAllAssets, addAsset, clearAllAssets } from '@/src/lib/store';
-import type { Asset } from '@/src/lib/types';
+import { getAllAssets, addAsset, clearAllAssets } from '@/lib/store';
+import type { Asset } from '@/lib/types';
 
 // Mock localStorage for store tests
 const localStorageMock = {
@@ -14,7 +14,7 @@ Object.defineProperty(window, 'localStorage', {
 });
 
 // Mock the store functions for import/export logic tests
-vi.mock('@/src/lib/store', () => ({
+vi.mock('@/lib/store', () => ({
   getAllAssets: vi.fn(),
   addAsset: vi.fn(),
   clearAllAssets: vi.fn(),

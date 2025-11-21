@@ -3,9 +3,9 @@ import {
   groupAssetsByTag,
   calculateCurrentValue,
   calculateDailyDepreciation,
-} from '@/src/lib/utils';
-import { getAllAssets, addAsset, clearAllAssets } from '@/src/lib/store';
-import AssetCard from '@/src/components/AssetCard';
+} from '@/lib/utils';
+import { getAllAssets, addAsset, clearAllAssets } from '@/lib/store';
+import AssetCard from '@/components/AssetCard';
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -17,7 +17,7 @@ import {
   DialogContent,
   Button,
 } from '@fluentui/react-components';
-import AssetForm, { type AssetFormHandle } from '@/src/components/AssetForm';
+import AssetForm, { type AssetFormHandle } from '@/components/AssetForm';
 import {
   Save24Filled,
   Dismiss24Filled,
@@ -25,7 +25,7 @@ import {
   ArrowUpload24Filled,
 } from '@fluentui/react-icons';
 import { Suspense } from 'react';
-import type { Asset } from '@/src/lib/types';
+import type { Asset } from '@/lib/types';
 
 function DashboardContent() {
   const router = useRouter();
@@ -52,7 +52,11 @@ function DashboardContent() {
 
   // Load assets on client side only
   useEffect(() => {
-    setAssets(getAllAssets());
+    const loadAssets = async () => {
+      const allAssets = await getAllAssets();
+      setAssets(allAssets);
+    };
+    loadAssets();
   }, [refreshKey]);
 
   // Sync URL tag param with state
@@ -75,8 +79,7 @@ function DashboardContent() {
   };
 
   const handleExportAll = useCallback(() => {
-    const allAssets = getAllAssets();
-    const dataStr = JSON.stringify(allAssets, null, 2);
+    const dataStr = JSON.stringify(assets, null, 2);
     const dataUri =
       'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
 
@@ -86,7 +89,7 @@ function DashboardContent() {
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileDefaultName);
     linkElement.click();
-  }, []);
+  }, [assets]);
 
   const handleImportAll = useCallback(() => {
     fileInputRef.current?.click();
