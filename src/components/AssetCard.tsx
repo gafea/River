@@ -25,6 +25,17 @@ export default function AssetCard({
 }) {
   const router = useRouter();
   const [currentValue, setCurrentValue] = useState(initialCurrentValue);
+  const [isDark, setIsDark] = useState(false);
+
+  // Detect theme preference
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setIsDark(mediaQuery.matches);
+
+    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
 
   // Auto-update current value every 15 seconds
   useEffect(() => {
@@ -95,7 +106,7 @@ export default function AssetCard({
             right: 0,
             bottom: 0,
             backdropFilter: 'blur(20px)',
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            backgroundColor: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.8)',
             zIndex: 0,
           }}
         />

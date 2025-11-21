@@ -201,27 +201,38 @@ function DashboardContent() {
           ))}
         </div>
       ) : (
-        Object.entries(grouped).map(([tag, list]) => (
-          <section key={tag} style={{ marginBlock: 24 }}>
-            <Text
-              as="h2"
-              size={600}
-              weight="semibold"
-              style={{ marginBottom: 12 }}
-            >
-              {tag}
-            </Text>
-            <div className="grid" style={{ marginTop: 12 }}>
-              {list.map((a) => (
-                <AssetCard
-                  key={a.id}
-                  asset={a}
-                  currentValue={calculateCurrentValue(a)}
-                />
-              ))}
-            </div>
-          </section>
-        ))
+        Object.entries(grouped)
+          .sort(([tagA], [tagB]) => tagA.localeCompare(tagB))
+          .map(([tag, list]) => {
+            // Sort assets within each tag section by daily cost descending
+            const sortedList = [...list].sort((a, b) => {
+              const costA = calculateDailyDepreciation(a);
+              const costB = calculateDailyDepreciation(b);
+              return costB - costA; // Descending order
+            });
+
+            return (
+              <section key={tag} style={{ marginBlock: 24 }}>
+                <Text
+                  as="h2"
+                  size={600}
+                  weight="semibold"
+                  style={{ marginBottom: 12 }}
+                >
+                  {tag}
+                </Text>
+                <div className="grid" style={{ marginTop: 12 }}>
+                  {sortedList.map((a) => (
+                    <AssetCard
+                      key={a.id}
+                      asset={a}
+                      currentValue={calculateCurrentValue(a)}
+                    />
+                  ))}
+                </div>
+              </section>
+            );
+          })
       )}
 
       {/* Hidden file input for import */}

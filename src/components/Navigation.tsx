@@ -46,7 +46,7 @@ function NavigationContent() {
   }, [pathname]);
 
   const grouped = groupAssetsByTag(assets);
-  const tags = Object.keys(grouped).sort();
+  const tags = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
 
   const isActivePath = (path: string) => pathname === path;
 

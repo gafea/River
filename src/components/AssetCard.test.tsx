@@ -11,6 +11,21 @@ vi.mock('next/navigation', () => ({
   })),
 }));
 
+// Mock window.matchMedia for theme detection
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false, // Default to light mode
+    media: query,
+    onchange: null,
+    addListener: vi.fn(), // deprecated
+    removeListener: vi.fn(), // deprecated
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+
 // Mock the utils functions
 vi.mock('@/src/lib/utils', () => ({
   formatCurrency: vi.fn((value: number) => `$${value.toLocaleString()}`),
