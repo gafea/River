@@ -197,14 +197,3 @@ export function getTagDefaults(): Record<string, number> {
   return readTagDefaults();
 }
 
-export function setTagDefault(tag: string, expectedLifeWeeks: number) {
-  const defaults = readTagDefaults();
-  defaults[tag] = expectedLifeWeeks;
-  writeTagDefaults(defaults);
-}
-
-export function removeTagDefault(tag: string) {
-  const defaults = readTagDefaults();
-  delete defaults[tag];
-  writeTagDefaults(defaults);
-}

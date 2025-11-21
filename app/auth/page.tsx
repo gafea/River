@@ -6,11 +6,11 @@ import { useAuth } from '@/components/AuthProvider';
 
 export default function AuthPage() {
   const router = useRouter();
-  const { isAuthenticated, login, register } = useAuth();
+  const { isAuthenticated, isLoading, login, register } = useAuth();
   const searchParams = useSearchParams();
 
   React.useEffect(() => {
-    if (isAuthenticated) {
+    if (!isLoading && isAuthenticated) {
       const requested = searchParams.get('next');
       // Basic validation to prevent open redirects
       const safe =
@@ -19,7 +19,11 @@ export default function AuthPage() {
           : '/dashboard';
       router.replace(safe as any);
     }
-  }, [isAuthenticated, router, searchParams]);
+  }, [isAuthenticated, isLoading, router, searchParams]);
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <div

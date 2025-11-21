@@ -5,17 +5,21 @@ import Navigation from '@/components/Navigation';
 import { usePathname, useRouter } from 'next/navigation';
 
 export default function AuthShell({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAuthenticated && pathname !== '/auth') {
+    if (!isLoading && !isAuthenticated && pathname !== '/auth') {
       // Preserve original destination for post-auth redirect
       const next = pathname || '/';
       router.replace(`/auth?next=${encodeURIComponent(next)}`);
     }
-  }, [isAuthenticated, pathname, router]);
+  }, [isAuthenticated, isLoading, pathname, router]);
+
+  if (isLoading) {
+    return null; // Or a loading spinner
+  }
 
   const showNavigation = isAuthenticated && pathname !== '/auth';
 

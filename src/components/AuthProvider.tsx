@@ -15,6 +15,7 @@ import { clearAllUserData } from '@/lib/store';
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  isLoading: boolean;
   userId: string | null;
   login: () => Promise<void>;
   register: () => Promise<void>;
@@ -26,6 +27,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,10 +35,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const checkAuth = async () => {
-    const res = await fetch('/api/auth/status');
-    const data = await res.json();
-    setIsAuthenticated(data.authenticated);
-    setUserId(data.userId || null);
+    try {
+      const res = await fetch('/api/auth/status');
+      const data = await res.json();
+      setIsAuthenticated(data.authenticated);
+      setUserId(data.userId || null);
+    } catch (error) {
+      console.error('Failed to check auth status', error);
+      setIsAuthenticated(false);
+      setUserId(null);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const register = async () => {
@@ -116,7 +126,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, userId, login, register, logout, authenticate }}
+      value={{
+        isAuthenticated,
+        isLoading,
+        userId,
+        login,
+        register,
+        logout,
+        authenticate,
+      }}
     >
       {children}
     </AuthContext.Provider>

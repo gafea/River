@@ -51,14 +51,14 @@ export default function AssetDetailPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const editFormRef = useRef<AssetFormHandle>(null);
   const [editValid, setEditValid] = useState(false);
-  const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Mark as client-side after hydration
   useEffect(() => {
-    setIsClient(true);
     const loadAssets = async () => {
       const allAssets = await getAllAssets();
       setAssets(allAssets);
+      setIsLoading(false);
     };
     loadAssets();
   }, []);
@@ -145,12 +145,8 @@ export default function AssetDetailPage() {
   };
 
   // Show loading state during hydration to prevent hydration mismatch
-  if (!isClient) {
-    return (
-      <main className="container">
-        <Text size={400}>Loading asset...</Text>
-      </main>
-    );
+  if (isLoading) {
+    return <main className="container"></main>;
   }
 
   if (!asset) {
