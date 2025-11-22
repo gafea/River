@@ -110,6 +110,22 @@ npm run build
 npm start
 ```
 
+### Production Setup After Clone
+
+When deploying or running locally in production mode after cloning the repo:
+
+```bash
+git clone <repository-url>
+cd tag
+npm install
+cp .env.example .env   # update secrets + URLs as needed
+npm run db:setup        # runs Prisma migrations against dev.db
+npm run build           # compiles the Next.js app
+npm start               # launches the production server via scripts/run-next.mjs
+```
+
+The `npm start` command reads the same `.env*` files, so set `APP_BASE_URL`, `NEXT_PUBLIC_APP_URL`, and `PORT` before launching.
+
 ### Code Formatting
 
 Format all files:
