@@ -83,7 +83,7 @@ npm run db:setup
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+4. Open [http://localhost:8003](http://localhost:8003) in your browser.
 
 ### Testing
 

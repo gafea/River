@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     verification = await verifyRegistrationResponse({
       response: body,
       expectedChallenge: session.challenge,
-      expectedOrigin: process.env.EXPECTED_ORIGIN || 'http://localhost:3000',
+      expectedOrigin: process.env.EXPECTED_ORIGIN || 'http://localhost:8003',
       expectedRPID: process.env.RP_ID || 'localhost',
     });
   } catch (error) {
