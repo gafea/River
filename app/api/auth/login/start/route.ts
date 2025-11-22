@@ -3,6 +3,7 @@ import { generateAuthenticationOptions } from '@simplewebauthn/server';
 import { sessionOptions } from '@/lib/session';
 import { getIronSession } from 'iron-session';
 import { prisma } from '@/lib/db';
+import { appConfig } from '@/lib/config';
 
 export async function POST(request: NextRequest) {
   const response = NextResponse.next();
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
   )) as any;
 
   const options = await generateAuthenticationOptions({
-    rpID: process.env.RP_ID || 'localhost',
+    rpID: appConfig.rpId,
     userVerification: 'preferred',
   });
 

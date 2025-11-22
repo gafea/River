@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "next dev -p 8003",
+    "dev": "node scripts/run-next.mjs dev",
     "build": "next build",
-    "start": "next start -p 8003",
+    "start": "node scripts/run-next.mjs start",
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
@@ -21,9 +21,9 @@
     "@simplewebauthn/server": "^13.2.2",
     "@types/better-sqlite3": "^7.6.13",
     "better-sqlite3": "^12.4.6",
+    "dotenv": "^17.2.3",
     "iron-session": "^8.0.4",
     "next": "^16.0.3",
-    "prisma": "^6.19.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "recharts": "^3.4.1"
@@ -39,6 +39,7 @@
     "eslint-config-next": "16.0.3",
     "jsdom": "^27.2.0",
     "prettier": "^3.6.2",
+    "prisma": "^6.19.0",
     "typescript": "5.9.3",
     "vitest": "^4.0.13"
   }

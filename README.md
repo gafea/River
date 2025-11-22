@@ -77,13 +77,17 @@ npm install
 npm run db:setup
 ```
 
-3. Start the development server:
+3. Copy `.env.example` to `.env` (or `.env.local`) and set `APP_BASE_URL` / `PORT` to match the domain + port you want to use. The defaults keep the app on `http://localhost:8003`.
+
+4. Start the development server:
 
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:8003](http://localhost:8003) in your browser.
+  The dev script loads the same `.env*` files as Next.js itself, so it honors your `PORT`/`APP_BASE_URL` settings automatically.
+
+5. Open the URL you configured in `APP_BASE_URL` (for example [http://localhost:8003](http://localhost:8003)).
 
 ### Testing
 

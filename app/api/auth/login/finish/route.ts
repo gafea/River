@@ -3,6 +3,7 @@ import { verifyAuthenticationResponse } from '@simplewebauthn/server';
 import { sessionOptions } from '@/lib/session';
 import { getIronSession } from 'iron-session';
 import { prisma } from '@/lib/db';
+import { appConfig } from '@/lib/config';
 
 export async function POST(request: NextRequest) {
   const response = NextResponse.next();
@@ -34,8 +35,8 @@ export async function POST(request: NextRequest) {
     verification = await verifyAuthenticationResponse({
       response: body,
       expectedChallenge: session.challenge,
-      expectedOrigin: process.env.EXPECTED_ORIGIN || 'http://localhost:8003',
-      expectedRPID: process.env.RP_ID || 'localhost',
+      expectedOrigin: appConfig.expectedOrigin,
+      expectedRPID: appConfig.rpId,
       credential: {
         id: credential.credentialId,
         publicKey: new Uint8Array(Buffer.from(credential.publicKey, 'base64')),

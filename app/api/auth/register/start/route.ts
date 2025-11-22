@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateRegistrationOptions } from '@simplewebauthn/server';
 import { sessionOptions } from '@/lib/session';
 import { getIronSession } from 'iron-session';
+import { appConfig } from '@/lib/config';
 
 export async function POST(request: NextRequest) {
   const response = NextResponse.next();
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
 
   const options = await generateRegistrationOptions({
     rpName: 'Asset Manager',
-    rpID: process.env.RP_ID || 'localhost',
+    rpID: appConfig.rpId,
     userID: new Uint8Array(Buffer.from(pendingUserId, 'utf8')),
     userName: `user-${pendingUserId}`, // Since no username, use ID
     attestationType: 'none',
