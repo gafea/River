@@ -39,6 +39,7 @@ import {
   DialogActions,
 } from '@fluentui/react-components';
 import AssetForm, { type AssetFormHandle } from '@/components/AssetForm';
+import { GooeyTitle } from '@/components/GooeyTitle';
 import type { Asset } from '@/lib/types';
 
 export default function AssetDetailPage() {
@@ -270,9 +271,9 @@ export default function AssetDetailPage() {
           </Dialog>
         </div>
       </div>
-      <Text as="h1" size={800} weight="semibold">
-        {asset.name}
-      </Text>
+      <div style={{ marginBottom: '24px' }}>
+        <GooeyTitle text={asset.name} />
+      </div>
       <Text
         as="h2"
         size={500}

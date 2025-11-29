@@ -67,7 +67,7 @@ A modern web application for tracking and managing depreciating assets with real
 
 ```bash
 git clone <repository-url>
-cd tag
+cd river
 ```
 
 2. Install dependencies:
@@ -116,7 +116,7 @@ When deploying or running locally in production mode after cloning the repo:
 
 ```bash
 git clone <repository-url>
-cd tag
+cd river
 npm install
 cp .env.example .env   # update secrets + URLs as needed
 npm run db:setup        # runs Prisma migrations against dev.db
@@ -137,7 +137,7 @@ npm run format
 ## Project Structure
 
 ```
-tag/
+river/
 ├── app/                    # Next.js App Router pages
 │   ├── assets/            # Asset detail pages
 │   ├── dashboard/         # Main dashboard
