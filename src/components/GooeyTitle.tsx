@@ -4,9 +4,10 @@ interface GooeyTitleProps {
   text: string;
   charSpacing?: number;
   charPadding?: number;
+  enableUpAndDown?: boolean;
 }
 
-export const GooeyTitle: React.FC<GooeyTitleProps> = ({ text, charSpacing = -5, charPadding = 18 }) => {
+export const GooeyTitle: React.FC<GooeyTitleProps> = ({ text, charSpacing = -5, charPadding = 20, enableUpAndDown = true }) => {
   const chars = text.split('');
   const size = 24 + charPadding * 2;
 
@@ -45,8 +46,8 @@ export const GooeyTitle: React.FC<GooeyTitleProps> = ({ text, charSpacing = -5, 
               width: `${size}px`,
               height: `${size}px`,
               borderRadius: '50%',
-              background: char === ' ' ? 'transparent' : '#2288ff',
-              margin: `0 ${charSpacing}px`, // Negative margin for overlap
+              background: char === ' ' ? 'transparent' : '#3388ff',
+              margin: `${enableUpAndDown && index % 2 ? charPadding / 4 : 0}px ${charSpacing}px 0 ${charSpacing}px`, // Negative margin for overlap
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -77,7 +78,7 @@ export const GooeyTitle: React.FC<GooeyTitleProps> = ({ text, charSpacing = -5, 
             style={{
               width: `${size}px`,
               height: `${size}px`,
-              margin: `0 ${charSpacing}px`, // Must match Layer 1 exactly
+              margin: `${enableUpAndDown && index % 2 ? charPadding / 4 : 0}px ${charSpacing}px 0 ${charSpacing}px`, // Must match Layer 1 exactly
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

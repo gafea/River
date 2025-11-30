@@ -32,7 +32,6 @@ body {
   }
 }
 
-/* Asset card hover effects */
 .asset-card:hover {
   transform: scale(1.025);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
@@ -80,4 +79,15 @@ body {
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* Gooey Button Styles */
+.gooey-button {
+  transition: transform 0.1s ease-in-out;
+}
+.gooey-button:hover {
+  transform: scale(1.05) translateZ(0);
+}
+.gooey-button:active {
+  transform: scale(0.95) translateZ(0);
 }

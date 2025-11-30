@@ -2,6 +2,7 @@
 import { Suspense, useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Button, Text } from '@fluentui/react-components';
+import { GooeyButton, GooeyButtonContainer } from './GooeyButton';
 import {
   Add24Regular,
   Tag24Regular,
@@ -63,7 +64,7 @@ function NavigationContent() {
   return (
     <nav
       style={{
-        width: 240,
+        width: 223,
         minHeight: '100vh',
         backgroundColor: 'var(--colorNeutralBackground2)',
         padding: 16,
@@ -78,54 +79,33 @@ function NavigationContent() {
       </Text>
       {isAuthenticated ? (
         <>
-          <Button
-            appearance="primary"
-            icon={<Add24Regular />}
-            onClick={() => router.push('/dashboard?new=1')}
-            style={{ marginBottom: 8 }}
-          >
-            New Asset
-          </Button>
-          <Button
-            appearance={
-              isActivePath('/dashboard') &&
-              !activeTag &&
-              !searchParams.get('search')
-                ? 'primary'
-                : 'subtle'
-            }
-            icon={<Home24Regular />}
-            onClick={() => router.push('/dashboard')}
-            style={{
-              justifyContent: 'flex-start',
-              ...(isActivePath('/dashboard') &&
+          <GooeyButtonContainer>
+            <GooeyButton
+              icon={<Add24Regular />}
+              label="New Asset"
+              onClick={() => router.push('/dashboard?new=1')}
+              style={{ width: '100%', height: '60px', background: '#005a9e', color: 'white', flexDirection: 'row', gap: '8px' }}
+            />
+            <GooeyButton
+              icon={<Home24Regular />}
+              label="All"
+              active={
+                isActivePath('/dashboard') &&
                 !activeTag &&
-                !searchParams.get('search') && {
-                  backgroundColor: isDark
-                    ? 'rgba(255, 255, 255, 0.1)'
-                    : '#E6F3FF',
-                  color: isDark ? '#ffffff' : '#0066CC',
-                }),
-            }}
-          >
-            All
-          </Button>
-          <Button
-            appearance={isActivePath('/search') ? 'primary' : 'subtle'}
-            icon={<Search24Regular />}
-            onClick={() => router.push('/search' as any)}
-            style={{
-              justifyContent: 'flex-start',
-              ...(isActivePath('/search') && {
-                backgroundColor: isDark
-                  ? 'rgba(255, 255, 255, 0.1)'
-                  : '#E6F3FF',
-                color: isDark ? '#ffffff' : '#0066CC',
-              }),
-            }}
-          >
-            Search
-          </Button>{' '}
+                !searchParams.get('search')
+              }
+              onClick={() => router.push('/dashboard')}
+              style={{ width: '90px', height: '90px' }}
+            />
+            <GooeyButton
+              icon={<Search24Regular />}
+              label="Search"
+              active={isActivePath('/search')}
+              onClick={() => router.push('/search' as any)}
+              style={{ width: '90px', height: '90px' }}
+            />
+          </GooeyButtonContainer>
+
           <div style={{ marginTop: 8, marginBottom: 8 }}>
             <Text
               weight="semibold"
@@ -135,29 +115,24 @@ function NavigationContent() {
               TAGS
             </Text>
           </div>
-          {tags.map((tag) => (
-            <Button
-              key={tag}
-              appearance={activeTag === tag ? 'primary' : 'subtle'}
-              icon={<Tag24Regular />}
-              onClick={() => {
-                const params = new URLSearchParams();
-                params.set('tag', tag);
-                router.push(`/dashboard?${params.toString()}`);
-              }}
-              style={{
-                justifyContent: 'flex-start',
-                ...(activeTag === tag && {
-                  backgroundColor: isDark
-                    ? 'rgba(255, 255, 255, 0.1)'
-                    : '#E6F3FF',
-                  color: isDark ? '#ffffff' : '#0066CC',
-                }),
-              }}
-            >
-              {tag} ({grouped[tag].length})
-            </Button>
-          ))}
+
+          <GooeyButtonContainer>
+            {tags.map((tag) => (
+              <GooeyButton
+                key={tag}
+                icon={<Tag24Regular />}
+                label={`${tag} (${grouped[tag].length})`}
+                active={activeTag === tag}
+                onClick={() => {
+                  const params = new URLSearchParams();
+                  params.set('tag', tag);
+                  router.push(`/dashboard?${params.toString()}`);
+                }}
+                style={{ width: '90px', height: '90px' }}
+              />
+            ))}
+          </GooeyButtonContainer>
+
           {tags.length === 0 && (
             <Text
               size={200}
