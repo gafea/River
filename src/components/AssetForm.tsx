@@ -316,7 +316,7 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
           onChange={(_, d) => setDescription(d.value)}
         />
       </Field>
-            <Field label="Photo">
+      <Field label="Photo">
         <input
           type="file"
           accept="image/*"

@@ -86,7 +86,14 @@ function NavigationContent() {
               icon={<Add24Regular />}
               label="New Asset"
               onClick={openNewAssetModal}
-              style={{ width: '100%', height: '60px', background: '#005a9e', color: 'white', flexDirection: 'row', gap: '8px' }}
+              style={{
+                width: '100%',
+                height: '60px',
+                background: '#005a9e',
+                color: 'white',
+                flexDirection: 'row',
+                gap: '8px',
+              }}
             />
             <GooeyButton
               icon={<Home24Regular />}

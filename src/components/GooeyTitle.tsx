@@ -7,12 +7,19 @@ interface GooeyTitleProps {
   enableUpAndDown?: boolean;
 }
 
-export const GooeyTitle: React.FC<GooeyTitleProps> = ({ text, charSpacing = -5, charPadding = 20, enableUpAndDown = true }) => {
+export const GooeyTitle: React.FC<GooeyTitleProps> = ({
+  text,
+  charSpacing = -5,
+  charPadding = 20,
+  enableUpAndDown = true,
+}) => {
   const chars = text.split('');
   const size = 24 + charPadding * 2;
 
   return (
-    <div style={{ position: 'relative', padding: '20px', width: 'fit-content' }}>
+    <div
+      style={{ position: 'relative', padding: '20px', width: 'fit-content' }}
+    >
       {/* SVG Filter Definition */}
       <svg style={{ position: 'absolute', width: 0, height: 0 }}>
         <defs>

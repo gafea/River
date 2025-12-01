@@ -1,5 +1,12 @@
 'use client';
-import React, { createContext, useContext, useState, ReactNode, useCallback, useTransition } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useCallback,
+  useTransition,
+} from 'react';
 import { useRouter } from 'next/navigation';
 
 interface UIContextType {
@@ -18,13 +25,19 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   const openNewAssetModal = useCallback(() => setIsNewAssetModalOpen(true), []);
-  const closeNewAssetModal = useCallback(() => setIsNewAssetModalOpen(false), []);
+  const closeNewAssetModal = useCallback(
+    () => setIsNewAssetModalOpen(false),
+    [],
+  );
 
-  const triggerTransition = useCallback((path: string) => {
-    startTransition(() => {
-      router.push(path);
-    });
-  }, [router]);
+  const triggerTransition = useCallback(
+    (path: string) => {
+      startTransition(() => {
+        router.push(path);
+      });
+    },
+    [router],
+  );
 
   return (
     <UIContext.Provider
