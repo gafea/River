@@ -47,7 +47,6 @@ body {
   height: 1em;
   width: 1em;
   margin: 0.375em;
-  margin-right: 0.125em;
   padding: 0.125em;
   border-radius: 50%;
   animation: 1.25s linear infinite spinner;

@@ -12,6 +12,7 @@ import {
 import { getAllAssets } from '@/lib/store';
 import { groupAssetsByTag } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
+import { useUI } from './UIContext';
 import type { Asset } from '@/lib/types';
 
 function NavigationContent() {
@@ -23,6 +24,7 @@ function NavigationContent() {
   const [isDark, setIsDark] = useState(false);
   const lastPathnameRef = useRef<string | undefined>(undefined);
   const { isAuthenticated, logout } = useAuth();
+  const { openNewAssetModal } = useUI();
 
   // Detect theme preference
   useEffect(() => {
@@ -83,7 +85,7 @@ function NavigationContent() {
             <GooeyButton
               icon={<Add24Regular />}
               label="New Asset"
-              onClick={() => router.push('/dashboard?new=1')}
+              onClick={openNewAssetModal}
               style={{ width: '100%', height: '60px', background: '#005a9e', color: 'white', flexDirection: 'row', gap: '8px' }}
             />
             <GooeyButton

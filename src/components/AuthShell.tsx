@@ -3,6 +3,8 @@ import React, { ReactNode, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import Navigation from '@/components/Navigation';
 import { usePathname, useRouter } from 'next/navigation';
+import NewAssetModal from './NewAssetModal';
+import RiverTransition from './RiverTransition';
 
 export default function AuthShell({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -38,6 +40,8 @@ export default function AuthShell({ children }: { children: ReactNode }) {
     <div style={{ display: 'flex' }}>
       {showNavigation && <Navigation />}
       <main style={{ flex: 1, overflow: 'auto' }}>{children}</main>
+      <NewAssetModal />
+      <RiverTransition />
     </div>
   );
 }

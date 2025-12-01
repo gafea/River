@@ -7,6 +7,7 @@ import {
 } from '@fluentui/react-components';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
+import { UIProvider } from './UIContext';
 
 // Custom dark theme with pure black background and #eee text
 const customDarkTheme: Theme = {
@@ -38,7 +39,7 @@ export default function Providers({ children }: { children: ReactNode }) {
       theme={isDark ? customDarkTheme : webLightTheme}
       style={{ minHeight: '100vh' }}
     >
-      {children}
+      <UIProvider>{children}</UIProvider>
     </FluentProvider>
   );
 }
