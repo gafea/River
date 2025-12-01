@@ -33,7 +33,8 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const triggerTransition = useCallback(
     (path: string) => {
       startTransition(() => {
-        router.push(path);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        router.push(path as any);
       });
     },
     [router],
