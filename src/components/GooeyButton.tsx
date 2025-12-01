@@ -44,7 +44,6 @@ export const GooeyButton = React.forwardRef<HTMLButtonElement, GooeyButtonProps>
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          border: 'none',
           background: active ? '#005a9e' : 'var(--colorNeutralBackground3)',
           color: active ? 'white' : 'var(--colorNeutralForeground1)',
           padding: '16px',

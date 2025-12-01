@@ -316,6 +316,22 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
           onChange={(_, d) => setDescription(d.value)}
         />
       </Field>
+            <Field label="Photo">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handlePhoto}
+          style={{ display: 'block' }}
+        />
+        {photoDataUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={photoDataUrl}
+            alt="preview"
+            style={{ marginTop: 8, maxWidth: '100%' }}
+          />
+        )}
+      </Field>
       <Field
         label="Purchase Value"
         required
@@ -364,7 +380,6 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
           }}
         />
       </Field>
-
       <Field label="Terminal Price (optional)">
         <Input
           type="number"
@@ -596,22 +611,6 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
             </div>
           )}
         </Card>
-      </Field>
-      <Field label="Photo">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handlePhoto}
-          style={{ display: 'block' }}
-        />
-        {photoDataUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={photoDataUrl}
-            alt="preview"
-            style={{ marginTop: 8, maxWidth: '100%' }}
-          />
-        )}
       </Field>
     </div>
   );
