@@ -15,6 +15,7 @@ import {
 } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { useUI } from './UIContext';
 
 export default function AssetCard({
   asset,
@@ -24,6 +25,7 @@ export default function AssetCard({
   currentValue: number;
 }) {
   const router = useRouter();
+  const { triggerTransition } = useUI();
   const [currentValue, setCurrentValue] = useState(initialCurrentValue);
   const [isDark, setIsDark] = useState(false);
 
@@ -94,7 +96,7 @@ export default function AssetCard({
           backgroundPosition: 'center',
         }),
       }}
-      onClick={() => router.push(`/assets/${asset.id}` as any)}
+      onClick={() => triggerTransition(`/assets/${asset.id}`)}
       className="asset-card"
     >
       {asset.photoDataUrl && (

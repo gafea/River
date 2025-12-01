@@ -15,7 +15,11 @@ const getPrismaSchemaDir = (workspaceRoot: string) => {
     return path.dirname(resolved);
   }
 
-  const defaultSchemaPath = path.resolve(workspaceRoot, 'prisma', 'schema.prisma');
+  const defaultSchemaPath = path.resolve(
+    workspaceRoot,
+    'prisma',
+    'schema.prisma',
+  );
   if (fs.existsSync(defaultSchemaPath)) {
     return path.dirname(defaultSchemaPath);
   }

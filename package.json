@@ -1,5 +1,5 @@
 {
-  "name": "tag",
+  "name": "river",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -20,27 +20,28 @@
     "@simplewebauthn/browser": "^13.2.2",
     "@simplewebauthn/server": "^13.2.2",
     "@types/better-sqlite3": "^7.6.13",
-    "better-sqlite3": "^12.4.6",
+    "better-sqlite3": "^12.5.0",
     "dotenv": "^17.2.3",
     "iron-session": "^8.0.4",
-    "next": "^16.0.3",
+    "next": "^16.0.6",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "recharts": "^3.4.1"
+    "recharts": "^3.5.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.0",
     "@types/jest": "30.0.0",
     "@types/node": "24.10.1",
-    "@types/react": "19.2.6",
+    "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
+    "baseline-browser-mapping": "^2.8.32",
     "eslint": "9.39.1",
-    "eslint-config-next": "16.0.3",
+    "eslint-config-next": "16.0.6",
     "jsdom": "^27.2.0",
-    "prettier": "^3.6.2",
+    "prettier": "^3.7.3",
     "prisma": "^6.19.0",
     "typescript": "5.9.3",
-    "vitest": "^4.0.13"
+    "vitest": "^4.0.14"
   }
 }

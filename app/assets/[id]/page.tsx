@@ -39,6 +39,8 @@ import {
   DialogActions,
 } from '@fluentui/react-components';
 import AssetForm, { type AssetFormHandle } from '@/components/AssetForm';
+import { GooeyTitle } from '@/components/GooeyTitle';
+import { GooeyButton, GooeyButtonContainer } from '@/components/GooeyButton';
 import type { Asset } from '@/lib/types';
 
 export default function AssetDetailPage() {
@@ -181,21 +183,26 @@ export default function AssetDetailPage() {
           alignItems: 'center',
         }}
       >
-        <Button icon={<ArrowLeft24Regular />} onClick={() => router.back()}>
-          Back
-        </Button>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <GooeyButtonContainer>
+          <GooeyButton
+            icon={<ArrowLeft24Regular />}
+            label="Back"
+            onClick={() => router.back()}
+            style={{ width: '80px', height: '80px' }}
+          />
+        </GooeyButtonContainer>
+        <GooeyButtonContainer>
           <Dialog
             open={editDialogOpen}
             onOpenChange={(_, data) => setEditDialogOpen(data.open)}
           >
             <DialogTrigger disableButtonEnhancement>
-              <Button
+              <GooeyButton
                 icon={<Edit24Regular />}
+                label="Edit"
                 onClick={() => setEditDialogOpen(true)}
-              >
-                Edit
-              </Button>
+                style={{ width: '80px', height: '80px' }}
+              />
             </DialogTrigger>
             <DialogSurface style={{ maxWidth: '90vw', width: '800px' }}>
               <DialogBody>
@@ -246,9 +253,11 @@ export default function AssetDetailPage() {
           </Dialog>
           <Dialog>
             <DialogTrigger disableButtonEnhancement>
-              <Button icon={<Delete24Regular />} appearance="secondary">
-                Delete
-              </Button>
+              <GooeyButton
+                icon={<Delete24Regular />}
+                label="Delete"
+                style={{ width: '80px', height: '80px' }}
+              />
             </DialogTrigger>
             <DialogSurface>
               <DialogBody>
@@ -268,11 +277,11 @@ export default function AssetDetailPage() {
               </DialogBody>
             </DialogSurface>
           </Dialog>
-        </div>
+        </GooeyButtonContainer>
       </div>
-      <Text as="h1" size={800} weight="semibold">
-        {asset.name}
-      </Text>
+      <div style={{ marginBottom: '24px' }}>
+        <GooeyTitle text={asset.name} />
+      </div>
       <Text
         as="h2"
         size={500}

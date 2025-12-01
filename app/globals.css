@@ -32,7 +32,6 @@ body {
   }
 }
 
-/* Asset card hover effects */
 .asset-card:hover {
   transform: scale(1.025);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
@@ -48,7 +47,6 @@ body {
   height: 1em;
   width: 1em;
   margin: 0.375em;
-  margin-right: 0.125em;
   padding: 0.125em;
   border-radius: 50%;
   animation: 1.25s linear infinite spinner;
@@ -80,4 +78,18 @@ body {
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* Gooey Button Styles */
+.gooey-button {
+  transition: transform 0.1s ease-in-out;
+  border: 1px solid transparent;
+}
+.gooey-button:hover {
+  transform: scale(1.05) translateZ(0);
+  border-color: #8882;
+}
+.gooey-button:active {
+  transform: scale(0.95) translateZ(0);
+  border-color: #8882;
 }

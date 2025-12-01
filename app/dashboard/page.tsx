@@ -25,6 +25,7 @@ import {
   Input,
 } from '@fluentui/react-components';
 import AssetForm, { type AssetFormHandle } from '@/components/AssetForm';
+import { GooeyButton, GooeyButtonContainer } from '@/components/GooeyButton';
 import {
   Save24Filled,
   Dismiss24Filled,
@@ -317,14 +318,20 @@ function DashboardContent() {
           )}
         </div>
         {!activeTag && (
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Button icon={<ArrowDownload24Filled />} onClick={handleExportAll}>
-              Export All
-            </Button>
-            <Button icon={<ArrowUpload24Filled />} onClick={handleImportAll}>
-              Import
-            </Button>
-          </div>
+          <GooeyButtonContainer>
+            <GooeyButton
+              icon={<ArrowDownload24Filled />}
+              label="Export"
+              onClick={handleExportAll}
+              style={{ width: '80px', height: '80px' }}
+            />
+            <GooeyButton
+              icon={<ArrowUpload24Filled />}
+              label="Import"
+              onClick={handleImportAll}
+              style={{ width: '80px', height: '80px' }}
+            />
+          </GooeyButtonContainer>
         )}
       </div>
 
