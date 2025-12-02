@@ -27,7 +27,7 @@ function generateWavyCirclePath(
 }
 
 export default function RiverTransition() {
-  const { isNavigating } = useUI();
+  const { isNavigating, isPageLoading, showTransitionOverlay } = useUI();
   const [stage, setStage] = useState<
     'hidden' | 'entering' | 'holding' | 'exiting'
   >('hidden');
@@ -36,8 +36,8 @@ export default function RiverTransition() {
   const DURATION = 650;
 
   useEffect(() => {
-    if (isNavigating) {
-      const delay = isDev ? 0 : 200;
+    if (isNavigating || showTransitionOverlay) {
+      const delay = isDev ? 0 : 100;
 
       timeoutRef.current = setTimeout(() => {
         setStage('entering');
@@ -46,12 +46,18 @@ export default function RiverTransition() {
         }, DURATION);
       }, delay);
     } else {
+      // Navigation finished
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
 
-      if (stage === 'entering' || stage === 'holding') {
+      // Only exit if not navigating AND not waiting for page load AND not showing overlay
+      if (
+        !isPageLoading &&
+        !showTransitionOverlay &&
+        (stage === 'entering' || stage === 'holding')
+      ) {
         const isEarlyInterrupt = isDev && stage === 'entering';
         const exitDelay = isEarlyInterrupt ? DURATION * 2 : 0;
 
@@ -69,7 +75,7 @@ export default function RiverTransition() {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [isNavigating]);
+  }, [isNavigating, isPageLoading, showTransitionOverlay]); // Re-run when isPageLoading changes
 
   const isHidden = stage === 'hidden';
   const isEntering = stage === 'entering';

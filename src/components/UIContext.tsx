@@ -13,14 +13,20 @@ interface UIContextType {
   isNewAssetModalOpen: boolean;
   openNewAssetModal: () => void;
   closeNewAssetModal: () => void;
-  triggerTransition: (path: string) => void;
+  triggerTransition: (path: string, waitForPageLoad?: boolean) => void;
   isNavigating: boolean;
+  isPageLoading: boolean;
+  setPageLoading: (loading: boolean) => void;
+  showTransitionOverlay: boolean;
+  setShowTransitionOverlay: (show: boolean) => void;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
 
 export function UIProvider({ children }: { children: ReactNode }) {
   const [isNewAssetModalOpen, setIsNewAssetModalOpen] = useState(false);
+  const [isPageLoading, setPageLoading] = useState(false);
+  const [showTransitionOverlay, setShowTransitionOverlay] = useState(false);
   const [isNavigating, startTransition] = useTransition();
   const router = useRouter();
 
@@ -31,7 +37,10 @@ export function UIProvider({ children }: { children: ReactNode }) {
   );
 
   const triggerTransition = useCallback(
-    (path: string) => {
+    (path: string, waitForPageLoad?: boolean) => {
+      if (waitForPageLoad) {
+        setPageLoading(true);
+      }
       startTransition(() => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         router.push(path as any);
@@ -48,6 +57,10 @@ export function UIProvider({ children }: { children: ReactNode }) {
         closeNewAssetModal,
         triggerTransition,
         isNavigating,
+        isPageLoading,
+        setPageLoading,
+        showTransitionOverlay,
+        setShowTransitionOverlay,
       }}
     >
       {children}

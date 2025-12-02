@@ -1,11 +1,5 @@
 'use client';
-import {
-  useState,
-  useEffect,
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-} from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import {
   addAsset,
   updateAsset,
@@ -63,10 +57,6 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
   const [existingTags, setExistingTags] = useState<string[]>([]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
-  const creationInFlightRef = useRef(false);
-  const debounceRef = useRef<number | undefined>(undefined);
-  const [savedAsset, setSavedAsset] = useState<Asset | undefined>(asset);
 
   useEffect(() => {
     const loadTags = async () => {
@@ -172,13 +162,11 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
 
     try {
       let saved: Asset;
-      if (savedAsset) {
-        saved = { ...savedAsset, ...assetData };
+      if (asset) {
+        saved = { ...asset, ...assetData };
         await updateAsset(saved);
-        setSavedAsset(saved);
       } else {
         saved = await addAsset(assetData);
-        setSavedAsset(saved);
       }
 
       if (onSaved) {
@@ -196,69 +184,6 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
       }
     }
   }
-  // Autosave when editing or after initial creation
-  useEffect(() => {
-    const valid = Object.keys(errors).length === 0;
-    if (!valid) return;
-    // Build assetData
-    const assetData = {
-      name: name.trim(),
-      description: description.trim() || undefined,
-      purchaseValue: Number(purchaseValue),
-      expectedLifeWeeks: Number(expectedLifeWeeks),
-      purchaseDate,
-      tag: tag.trim(),
-      photoDataUrl,
-      terminalPrice: terminalPrice > 0 ? terminalPrice : undefined,
-      events: events.length > 0 ? events : undefined,
-    };
-
-    // Debounce saves to avoid excessive network traffic
-    window.clearTimeout(debounceRef.current);
-    debounceRef.current = window.setTimeout(async () => {
-      try {
-        setSaving(true);
-        if (savedAsset) {
-          const updated: Asset = { ...savedAsset, ...assetData };
-          await updateAsset(updated);
-          setSavedAsset(updated);
-        } else if (
-          !creationInFlightRef.current &&
-          assetData.name &&
-          assetData.purchaseValue > 0 &&
-          assetData.expectedLifeWeeks > 0
-        ) {
-          // Create new asset once minimal required fields are valid
-          creationInFlightRef.current = true;
-          try {
-            const created = await addAsset(assetData);
-            setSavedAsset(created);
-            onSaved?.(created);
-          } finally {
-            creationInFlightRef.current = false;
-          }
-        }
-      } catch (e) {
-        // Swallow autosave errors; manual submit will surface
-      } finally {
-        setSaving(false);
-      }
-    }, 800);
-
-    return () => window.clearTimeout(debounceRef.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    name,
-    description,
-    purchaseValue,
-    expectedLifeWeeks,
-    purchaseDate,
-    tag,
-    photoDataUrl,
-    terminalPrice,
-    events,
-    errors,
-  ]);
 
   useImperativeHandle(
     ref,
@@ -270,17 +195,6 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
 
   return (
     <div>
-      {saving && (
-        <div
-          style={{
-            fontSize: 12,
-            color: 'var(--colorNeutralForeground3)',
-            marginBottom: 8,
-          }}
-        >
-          Autosaving...
-        </div>
-      )}
       <Field
         label="Name"
         required

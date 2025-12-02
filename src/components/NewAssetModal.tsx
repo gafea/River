@@ -1,69 +1,78 @@
 'use client';
 import { useUI } from './UIContext';
-import AssetForm from './AssetForm';
-import { Button, Card, Text } from '@fluentui/react-components';
-import { Dismiss24Regular } from '@fluentui/react-icons';
+import AssetForm, { AssetFormHandle } from './AssetForm';
+import {
+  Button,
+  Dialog,
+  DialogSurface,
+  DialogBody,
+  DialogTitle,
+  DialogContent,
+} from '@fluentui/react-components';
+import { Save24Filled, Dismiss24Filled } from '@fluentui/react-icons';
+import { useRef, useState } from 'react';
 
 export default function NewAssetModal() {
   const { isNewAssetModalOpen, closeNewAssetModal } = useUI();
-
-  if (!isNewAssetModalOpen) return null;
+  const formRef = useRef<AssetFormHandle>(null);
+  const [newValid, setNewValid] = useState(false);
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        zIndex: 10000,
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backdropFilter: 'blur(4px)',
-      }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) closeNewAssetModal();
+    <Dialog
+      open={isNewAssetModalOpen}
+      onOpenChange={(event, data) => {
+        if (!data.open) closeNewAssetModal();
       }}
     >
-      <Card
+      <DialogSurface
         style={{
           width: '90%',
           maxWidth: '800px',
           maxHeight: '90vh',
-          overflowY: 'auto',
-          padding: '24px',
-          position: 'relative',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '24px',
-          }}
-        >
-          <Text as="h2" size={600} weight="semibold">
-            Create New Asset
-          </Text>
-          <Button
-            appearance="subtle"
-            icon={<Dismiss24Regular />}
-            onClick={closeNewAssetModal}
-            aria-label="Close"
-          />
-        </div>
-        <AssetForm
-          onSaved={() => {
-            closeNewAssetModal();
-            // Optionally refresh data or show success message
-          }}
-          onCancel={closeNewAssetModal}
-        />
-      </Card>
-    </div>
+        <DialogBody>
+          <DialogTitle>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+              }}
+            >
+              <span>Create New Asset</span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Button
+                  aria-label="Save"
+                  icon={<Save24Filled />}
+                  appearance="primary"
+                  size="large"
+                  onClick={() => formRef.current?.submit()}
+                  disabled={!newValid}
+                />
+                <Button
+                  aria-label="Close"
+                  icon={<Dismiss24Filled />}
+                  appearance="subtle"
+                  size="large"
+                  onClick={closeNewAssetModal}
+                />
+              </div>
+            </div>
+          </DialogTitle>
+          <DialogContent>
+            <AssetForm
+              ref={formRef}
+              onSaved={() => {
+                closeNewAssetModal();
+              }}
+              onCancel={closeNewAssetModal}
+              onValidityChange={setNewValid}
+            />
+          </DialogContent>
+        </DialogBody>
+      </DialogSurface>
+    </Dialog>
   );
 }

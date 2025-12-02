@@ -18,7 +18,7 @@ function read(): Asset[] {
   }
 }
 
-function readTagDefaults(): Record<string, number> {
+export function getTagDefaults(): Record<string, number> {
   if (typeof window === 'undefined') return {};
   try {
     const raw = window.localStorage.getItem(TAG_DEFAULTS_KEY);
@@ -115,6 +115,7 @@ function seed(): Asset[] {
 }
 
 export async function addAsset(asset: Omit<Asset, 'id'>): Promise<Asset> {
+  setTagDefault(asset.tag, asset.expectedLifeWeeks);
   try {
     const res = await fetch('/api/assets', {
       method: 'POST',
@@ -143,6 +144,7 @@ export async function addAsset(asset: Omit<Asset, 'id'>): Promise<Asset> {
 }
 
 export async function updateAsset(updated: Asset) {
+  setTagDefault(updated.tag, updated.expectedLifeWeeks);
   try {
     const res = await fetch(`/api/assets/${updated.id}`, {
       method: 'PUT',
@@ -203,12 +205,9 @@ export function clearAllUserData() {
   }
 }
 
-export function getTagDefaults(): Record<string, number> {
-  return readTagDefaults();
-}
-
-export function setTagDefault(tag: string, expectedLifeWeeks: number) {
-  const defaults = readTagDefaults();
-  defaults[tag] = expectedLifeWeeks;
+export function setTagDefault(tag: string, weeks: number) {
+  if (!tag || weeks <= 0) return;
+  const defaults = getTagDefaults();
+  defaults[tag] = weeks;
   writeTagDefaults(defaults);
 }

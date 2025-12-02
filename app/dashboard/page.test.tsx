@@ -28,7 +28,7 @@ describe('Dashboard Import/Export Logic', () => {
       purchaseValue: 1000,
       expectedLifeWeeks: 52,
       purchaseDate: '2023-01-01',
-      tags: ['test'],
+      tag: 'test',
     },
     {
       id: '2',
@@ -36,7 +36,7 @@ describe('Dashboard Import/Export Logic', () => {
       purchaseValue: 2000,
       expectedLifeWeeks: 104,
       purchaseDate: '2023-01-01',
-      tags: ['test'],
+      tag: 'test',
     },
   ];
 

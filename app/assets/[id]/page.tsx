@@ -42,10 +42,12 @@ import AssetForm, { type AssetFormHandle } from '@/components/AssetForm';
 import { GooeyTitle } from '@/components/GooeyTitle';
 import { GooeyButton, GooeyButtonContainer } from '@/components/GooeyButton';
 import type { Asset } from '@/lib/types';
+import { useUI } from '@/components/UIContext';
 
 export default function AssetDetailPage() {
   const params = useParams();
   const id = params.id as string;
+  const { setPageLoading, setShowTransitionOverlay } = useUI();
   const [assets, setAssets] = useState<Asset[]>([]);
   const asset = assets.find((a) => a.id === id);
   const router = useRouter();
@@ -61,9 +63,10 @@ export default function AssetDetailPage() {
       const allAssets = await getAllAssets();
       setAssets(allAssets);
       setIsLoading(false);
+      setPageLoading(false);
     };
     loadAssets();
-  }, []);
+  }, [setPageLoading]);
 
   const xAxisTicks = useMemo(() => {
     if (!asset) return [];
@@ -222,7 +225,10 @@ export default function AssetDetailPage() {
                         icon={<Save24Filled />}
                         appearance="primary"
                         size="large"
-                        onClick={() => editFormRef.current?.submit()}
+                        onClick={() => {
+                          setShowTransitionOverlay(true);
+                          editFormRef.current?.submit();
+                        }}
                         disabled={!editValid}
                       ></Button>
                       <Button
@@ -239,10 +245,12 @@ export default function AssetDetailPage() {
                   <AssetForm
                     ref={editFormRef}
                     asset={asset}
-                    onSaved={() => {
+                    onSaved={async () => {
                       setEditDialogOpen(false);
                       // Refresh the page data
-                      window.location.reload();
+                      const allAssets = await getAllAssets();
+                      setAssets(allAssets);
+                      setShowTransitionOverlay(false);
                     }}
                     onCancel={() => {}}
                     onValidityChange={setEditValid}

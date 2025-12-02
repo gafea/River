@@ -13,7 +13,6 @@ import {
   calculateDailyDepreciation,
   calculateCurrentValue,
 } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useUI } from './UIContext';
 
@@ -24,7 +23,6 @@ export default function AssetCard({
   asset: Asset;
   currentValue: number;
 }) {
-  const router = useRouter();
   const { triggerTransition } = useUI();
   const [currentValue, setCurrentValue] = useState(initialCurrentValue);
   const [isDark, setIsDark] = useState(false);
@@ -96,7 +94,7 @@ export default function AssetCard({
           backgroundPosition: 'center',
         }),
       }}
-      onClick={() => triggerTransition(`/assets/${asset.id}`)}
+      onClick={() => triggerTransition(`/assets/${asset.id}`, true)}
       className="asset-card"
     >
       {asset.photoDataUrl && (

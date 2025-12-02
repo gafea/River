@@ -13,7 +13,7 @@ import {
 } from '@/lib/store';
 import AssetCard from '@/components/AssetCard';
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   Text,
   Dialog,
@@ -24,11 +24,8 @@ import {
   Button,
   Input,
 } from '@fluentui/react-components';
-import AssetForm, { type AssetFormHandle } from '@/components/AssetForm';
 import { GooeyButton, GooeyButtonContainer } from '@/components/GooeyButton';
 import {
-  Save24Filled,
-  Dismiss24Filled,
   ArrowDownload24Filled,
   ArrowUpload24Filled,
   Edit24Regular,
@@ -39,7 +36,6 @@ import { Suspense } from 'react';
 import type { Asset } from '@/lib/types';
 
 function TagDefaultEditor({
-  tag,
   initialValue,
   onSave,
 }: {
@@ -105,17 +101,10 @@ function TagDefaultEditor({
 }
 
 function DashboardContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const tagFromUrl = searchParams.get('tag');
-  const newOpen = searchParams.get('new') === '1';
-  const editId = searchParams.get('edit');
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const newFormRef = useRef<AssetFormHandle>(null);
-  const editFormRef = useRef<AssetFormHandle>(null);
-  const [newValid, setNewValid] = useState(false);
-  const [editValid, setEditValid] = useState(false);
   const [assets, setAssets] = useState<Asset[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
@@ -124,12 +113,7 @@ function DashboardContent() {
     Record<string, number>
   >({});
   const [tagDefaults, setTagDefaults] = useState<Record<string, number>>({});
-
   const grouped = groupAssetsByTag(assets);
-  const assetToEdit = useMemo(
-    () => assets.find((a) => a.id === editId) || null,
-    [assets, editId],
-  );
 
   // Load assets on client side only
   useEffect(() => {
@@ -146,23 +130,9 @@ function DashboardContent() {
     setActiveTag(tagFromUrl);
   }, [tagFromUrl]);
 
-  const closeDialogs = useCallback(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete('new');
-    params.delete('edit');
-    const base = '/dashboard';
-    const next = params.toString() ? `${base}?${params.toString()}` : base;
-    router.push(next as any);
-  }, [router, searchParams]);
-
   const handleUpdateTagDefault = (tag: string, weeks: number) => {
     setTagDefault(tag, weeks);
     setTagDefaults(getTagDefaults());
-  };
-
-  const handleSaved = () => {
-    setRefreshKey((prev) => prev + 1);
-    closeDialogs();
   };
 
   const handleExportAll = useCallback(() => {
@@ -398,111 +368,6 @@ function DashboardContent() {
         accept=".json"
         style={{ display: 'none' }}
       />
-
-      {/* Create New Dialog */}
-      <Dialog
-        open={newOpen}
-        onOpenChange={(_, data) => {
-          if (!data.open) closeDialogs();
-        }}
-      >
-        <DialogSurface>
-          <DialogBody>
-            <DialogTitle>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                }}
-              >
-                <span>Create New Asset</span>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <Button
-                    aria-label="Save"
-                    icon={<Save24Filled />}
-                    appearance="primary"
-                    size="large"
-                    onClick={() => newFormRef.current?.submit()}
-                    disabled={!newValid}
-                  />
-                  <Button
-                    aria-label="Close"
-                    icon={<Dismiss24Filled />}
-                    appearance="subtle"
-                    size="large"
-                    onClick={closeDialogs}
-                  />
-                </div>
-              </div>
-            </DialogTitle>
-            <DialogContent>
-              <AssetForm
-                ref={newFormRef}
-                onSaved={handleSaved}
-                onCancel={closeDialogs}
-                onValidityChange={setNewValid}
-              />
-            </DialogContent>
-          </DialogBody>
-        </DialogSurface>
-      </Dialog>
-
-      {/* Edit Dialog */}
-      <Dialog
-        open={!!editId}
-        onOpenChange={(_, data) => {
-          if (!data.open) closeDialogs();
-        }}
-      >
-        <DialogSurface>
-          <DialogBody>
-            <DialogTitle>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                }}
-              >
-                <span>Edit Asset</span>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <Button
-                    aria-label="Save"
-                    icon={<Save24Filled />}
-                    appearance="primary"
-                    size="large"
-                    onClick={() => editFormRef.current?.submit()}
-                    disabled={!editValid}
-                  />
-                  <Button
-                    aria-label="Close"
-                    icon={<Dismiss24Filled />}
-                    appearance="subtle"
-                    size="large"
-                    onClick={closeDialogs}
-                  />
-                </div>
-              </div>
-            </DialogTitle>
-            <DialogContent>
-              {assetToEdit ? (
-                <AssetForm
-                  ref={editFormRef}
-                  asset={assetToEdit}
-                  onSaved={handleSaved}
-                  onCancel={closeDialogs}
-                  onValidityChange={setEditValid}
-                />
-              ) : (
-                <Text>Asset not found.</Text>
-              )}
-            </DialogContent>
-          </DialogBody>
-        </DialogSurface>
-      </Dialog>
 
       {/* Import Confirmation Dialog */}
       <Dialog
