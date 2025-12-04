@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateAuthenticationOptions } from '@simplewebauthn/server';
 import { sessionOptions } from '@/lib/session';
 import { getIronSession } from 'iron-session';
-import { prisma } from '@/lib/db';
 import { appConfig } from '@/lib/config';
 
 export async function POST(request: NextRequest) {

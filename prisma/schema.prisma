@@ -17,6 +17,7 @@ model User {
 
   credentials Credential[]
   assets      Asset[]
+  tags String? // JSON string of default tags info
 }
 
 model Credential {

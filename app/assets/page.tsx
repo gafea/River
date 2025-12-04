@@ -8,7 +8,7 @@ import {
   getAllAssets,
   addAsset,
   clearAllAssets,
-  getTagDefaults,
+  getTags,
   setTagDefault,
 } from '@/lib/store';
 import AssetCard from '@/components/AssetCard';
@@ -34,6 +34,7 @@ import {
 } from '@fluentui/react-icons';
 import { Suspense } from 'react';
 import type { Asset } from '@/lib/types';
+import { useUI } from '@/components/UIContext';
 
 function TagDefaultEditor({
   initialValue,
@@ -112,33 +113,31 @@ function DashboardContent() {
   const [importedDefaults, setImportedDefaults] = useState<
     Record<string, number>
   >({});
-  const [tagDefaults, setTagDefaults] = useState<Record<string, number>>({});
+  const [tags, setTags] = useState<Record<string, number>>({});
   const grouped = groupAssetsByTag(assets);
+  const { setPageLoading } = useUI();
 
-  // Load assets on client side only
   useEffect(() => {
     const loadAssets = async () => {
       const allAssets = await getAllAssets();
       setAssets(allAssets);
+      setTags(getTags());
     };
     loadAssets();
-    setTagDefaults(getTagDefaults());
+    setPageLoading(false);
   }, [refreshKey]);
 
-  // Sync URL tag param with state
   useEffect(() => {
     setActiveTag(tagFromUrl);
   }, [tagFromUrl]);
 
   const handleUpdateTagDefault = (tag: string, weeks: number) => {
     setTagDefault(tag, weeks);
-    setTagDefaults(getTagDefaults());
+    setTags(getTags());
   };
 
   const handleExportAll = useCallback(() => {
-    // Strip id and userId (if present) from assets before exporting
     const assetsToExport = assets.map((asset) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, ...rest } = asset;
       // @ts-ignore - userId might be present at runtime
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -148,7 +147,7 @@ function DashboardContent() {
 
     const exportData = {
       assets: assetsToExport,
-      tagDefaults: getTagDefaults(),
+      tags: getTags(),
     };
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataUri =
@@ -182,7 +181,7 @@ function DashboardContent() {
             assetsToImport = json;
           } else if (json.assets && Array.isArray(json.assets)) {
             assetsToImport = json.assets;
-            defaultsToImport = json.tagDefaults || {};
+            defaultsToImport = json.tags || {};
           } else {
             alert(
               'Invalid file format. Expected an array of assets or an export object.',
@@ -200,7 +199,6 @@ function DashboardContent() {
       };
       reader.readAsText(file);
 
-      // Reset the input
       event.target.value = '';
     },
     [],
@@ -213,15 +211,12 @@ function DashboardContent() {
           await clearAllAssets();
         }
 
-        // Save imported defaults
         Object.entries(importedDefaults).forEach(([tag, val]) => {
           setTagDefault(tag, val);
         });
-        setTagDefaults(getTagDefaults());
+        setTags(getTags());
 
         const promises = importedAssets.map((asset) => {
-          // Always generate new IDs during import
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { id, ...assetWithoutId } = asset;
           return addAsset(assetWithoutId);
         });
@@ -249,11 +244,10 @@ function DashboardContent() {
   const visibleAssets = useMemo(() => {
     let assetsToShow = activeTag ? grouped[activeTag] || [] : assets;
 
-    // Sort by daily cost descending (highest cost first)
     assetsToShow = [...assetsToShow].sort((a, b) => {
       const costA = calculateDailyDepreciation(a);
       const costB = calculateDailyDepreciation(b);
-      return costB - costA; // Descending order
+      return costB - costA;
     });
 
     return assetsToShow;
@@ -282,7 +276,7 @@ function DashboardContent() {
           {activeTag && (
             <TagDefaultEditor
               tag={activeTag}
-              initialValue={tagDefaults[activeTag]}
+              initialValue={tags[activeTag]}
               onSave={(val) => handleUpdateTagDefault(activeTag, val)}
             />
           )}
@@ -319,11 +313,10 @@ function DashboardContent() {
         Object.entries(grouped)
           .sort(([tagA], [tagB]) => tagA.localeCompare(tagB))
           .map(([tag, list]) => {
-            // Sort assets within each tag section by daily cost descending
             const sortedList = [...list].sort((a, b) => {
               const costA = calculateDailyDepreciation(a);
               const costB = calculateDailyDepreciation(b);
-              return costB - costA; // Descending order
+              return costB - costA;
             });
 
             return (
@@ -342,7 +335,7 @@ function DashboardContent() {
                   </Text>
                   <TagDefaultEditor
                     tag={tag}
-                    initialValue={tagDefaults[tag]}
+                    initialValue={tags[tag]}
                     onSave={(val) => handleUpdateTagDefault(tag, val)}
                   />
                 </div>
@@ -360,7 +353,6 @@ function DashboardContent() {
           })
       )}
 
-      {/* Hidden file input for import */}
       <input
         type="file"
         ref={fileInputRef}
@@ -369,7 +361,6 @@ function DashboardContent() {
         style={{ display: 'none' }}
       />
 
-      {/* Import Confirmation Dialog */}
       <Dialog
         open={importDialogOpen}
         onOpenChange={(_, data) => {

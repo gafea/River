@@ -15,10 +15,10 @@ export async function POST(request: NextRequest) {
   const pendingUserId = crypto.randomUUID();
 
   const options = await generateRegistrationOptions({
-    rpName: 'Asset Manager',
+    rpName: 'River',
     rpID: appConfig.rpId,
     userID: new Uint8Array(Buffer.from(pendingUserId, 'utf8')),
-    userName: `user-${pendingUserId}`, // Since no username, use ID
+    userName: `bucket-${pendingUserId}`,
     attestationType: 'none',
     authenticatorSelection: {
       residentKey: 'preferred',

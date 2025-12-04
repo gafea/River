@@ -13,7 +13,11 @@ interface UIContextType {
   isNewAssetModalOpen: boolean;
   openNewAssetModal: () => void;
   closeNewAssetModal: () => void;
-  triggerTransition: (path: string, waitForPageLoad?: boolean) => void;
+  triggerTransition: (
+    path: string,
+    waitForPageLoad?: boolean,
+    replace?: boolean,
+  ) => void;
   isNavigating: boolean;
   isPageLoading: boolean;
   setPageLoading: (loading: boolean) => void;
@@ -37,13 +41,17 @@ export function UIProvider({ children }: { children: ReactNode }) {
   );
 
   const triggerTransition = useCallback(
-    (path: string, waitForPageLoad?: boolean) => {
+    (path: string, waitForPageLoad?: boolean, replace?: boolean) => {
       if (waitForPageLoad) {
         setPageLoading(true);
       }
       startTransition(() => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        router.push(path as any);
+        if (replace) {
+          router.replace(path as any);
+        } else {
+          router.push(path as any);
+        }
       });
     },
     [router],

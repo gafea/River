@@ -1,11 +1,6 @@
 'use client';
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import {
-  addAsset,
-  updateAsset,
-  getTagDefaults,
-  getAllAssets,
-} from '@/lib/store';
+import { addAsset, updateAsset, getTags, getAllAssets } from '@/lib/store';
 import { Asset, AssetEvent } from '@/lib/types';
 import {
   Input,
@@ -99,36 +94,31 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
 
   // Initialize form with asset data when editing
   useEffect(() => {
-    if (asset) {
-      setName(asset.name);
-      setDescription(asset.description || '');
-      setPurchaseValue(asset.purchaseValue);
-      setExpectedLifeWeeks(asset.expectedLifeWeeks);
-      setPurchaseDate(asset.purchaseDate);
-      setTag(asset.tag || '');
-      setPhotoDataUrl(asset.photoDataUrl);
-      setTerminalPrice(asset.terminalPrice ?? 0);
-      setEvents(asset.events || []);
-      // Ensure validation runs after asset data is populated
-      validate({
-        name: asset.name,
-        purchaseValue: asset.purchaseValue,
-        expectedLifeWeeks: asset.expectedLifeWeeks,
-        purchaseDate: asset.purchaseDate,
-      });
-    } else {
-      // For new assets, validate initial state
+    if (!asset) {
       validate();
+      return;
     }
+    setName(asset.name);
+    setDescription(asset.description || '');
+    setPurchaseValue(asset.purchaseValue);
+    setExpectedLifeWeeks(asset.expectedLifeWeeks);
+    setPurchaseDate(asset.purchaseDate);
+    setTag(asset.tag || '');
+    setPhotoDataUrl(asset.photoDataUrl);
+    setTerminalPrice(asset.terminalPrice ?? 0);
+    setEvents(asset.events || []);
+    validate({
+      name: asset.name,
+      purchaseValue: asset.purchaseValue,
+      expectedLifeWeeks: asset.expectedLifeWeeks,
+      purchaseDate: asset.purchaseDate,
+    });
   }, [asset]);
 
   // Auto-fill expected life based on tag
   useEffect(() => {
-    if (!tag) return;
-    // If editing and tag hasn't changed from original, don't overwrite
-    if (isEdit && asset?.tag === tag) return;
-
-    const defaults = getTagDefaults();
+    if (!tag || (isEdit && asset?.tag === tag)) return;
+    const defaults = getTags();
     if (defaults[tag]) {
       setExpectedLifeWeeks(defaults[tag]);
       validate({ expectedLifeWeeks: defaults[tag] });
@@ -172,7 +162,7 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
       if (onSaved) {
         onSaved(saved);
       } else {
-        router.push('/dashboard');
+        router.push('/assets');
       }
     } catch (e) {
       if (e instanceof DOMException && e.name === 'QuotaExceededError') {

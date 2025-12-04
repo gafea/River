@@ -10,7 +10,7 @@ vi.mock('next/navigation', () => ({
   useRouter: vi.fn(() => ({
     push: mockPush,
   })),
-  usePathname: vi.fn(() => '/dashboard'),
+  usePathname: vi.fn(() => '/assets'),
   useSearchParams: vi.fn(() => ({
     get: vi.fn(),
   })),
@@ -102,7 +102,7 @@ describe('Navigation', () => {
     });
 
     fireEvent.click(screen.getByText('New Asset'));
-    expect(mockPush).toHaveBeenCalledWith('/dashboard?new=1');
+    expect(mockPush).toHaveBeenCalledWith('/assets?new=1');
   });
 
   it('navigates to search page', async () => {
@@ -125,7 +125,7 @@ describe('Navigation', () => {
     // We need to check if push was called with the correct URL.
     // Note: URLSearchParams might encode characters, so we check for containment or exact match if simple.
     expect(mockPush).toHaveBeenCalledWith(
-      expect.stringContaining('/dashboard?tag=IT'),
+      expect.stringContaining('/assets?tag=IT'),
     );
   });
 

@@ -33,7 +33,7 @@ export default function RiverTransition() {
   >('hidden');
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isDev = process.env.NODE_ENV === 'development';
-  const DURATION = 650;
+  const DURATION = 550;
 
   useEffect(() => {
     if (isNavigating || showTransitionOverlay) {
@@ -157,7 +157,7 @@ export default function RiverTransition() {
             opacity: !isHidden ? 1 : 0,
             transform: !isHidden ? 'scale(1)' : 'scale(0.5)',
             transition: isEntering
-              ? `opacity ${DURATION / 2}ms ease, transform ${DURATION / 2}ms cubic-bezier(0.34, 1.56, 0.64, 1)`
+              ? `opacity ${DURATION}ms ease, transform ${DURATION}ms cubic-bezier(0.33, 1.5, 0.5, 1)`
               : 'none',
           }}
         >

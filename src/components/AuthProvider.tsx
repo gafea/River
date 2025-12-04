@@ -12,6 +12,7 @@ import {
   startAuthentication,
 } from '@simplewebauthn/browser';
 import { clearAllUserData } from '@/lib/store';
+import { useUI } from './UIContext';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -26,6 +27,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { setShowTransitionOverlay } = useUI();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -61,6 +63,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Use WebAuthn
       const attResp = await startRegistration(options);
 
+      setShowTransitionOverlay(true);
+
       // Finish registration
       const finishRes = await fetch('/api/auth/register/finish', {
         method: 'POST',
@@ -70,7 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!finishRes.ok) throw new Error('Failed to finish registration');
 
       await checkAuth();
+      setShowTransitionOverlay(false);
     } catch (e) {
+      setShowTransitionOverlay(false);
       alert('Registration failed: ' + (e as Error).message);
       // Ensure any pending session state is cleared if registration aborted mid-flow
       try {
@@ -92,6 +98,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Use WebAuthn
       const attResp = await startAuthentication(options);
 
+      setShowTransitionOverlay(true);
+
       // Finish authentication
       const finishRes = await fetch('/api/auth/login/finish', {
         method: 'POST',
@@ -101,7 +109,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!finishRes.ok) throw new Error('Failed to finish login');
 
       await checkAuth();
+      setShowTransitionOverlay(false);
     } catch (e) {
+      setShowTransitionOverlay(false);
       alert('Login failed: ' + (e as Error).message);
     }
   };

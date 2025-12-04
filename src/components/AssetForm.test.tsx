@@ -8,7 +8,7 @@ import type { Asset } from '@/lib/types';
 vi.mock('@/lib/store', () => ({
   addAsset: vi.fn(),
   updateAsset: vi.fn(),
-  getTagDefaults: vi.fn(() => ({})),
+  getTags: vi.fn(() => ({})),
   getAllAssets: vi.fn(() => Promise.resolve([])),
 }));
 

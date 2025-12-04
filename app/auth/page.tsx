@@ -1,12 +1,13 @@
 'use client';
 import React from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Button, Card, Text } from '@fluentui/react-components';
 import { useAuth } from '@/components/AuthProvider';
+import { useUI } from '@/components/UIContext';
 
 export default function AuthPage() {
-  const router = useRouter();
   const { isAuthenticated, isLoading, login, register } = useAuth();
+  const { triggerTransition } = useUI();
   const searchParams = useSearchParams();
 
   React.useEffect(() => {
@@ -16,10 +17,10 @@ export default function AuthPage() {
       const safe =
         requested && requested.startsWith('/') && !requested.startsWith('//')
           ? requested
-          : '/dashboard';
-      router.replace(safe as any);
+          : '/assets';
+      triggerTransition(safe, false, true);
     }
-  }, [isAuthenticated, isLoading, router, searchParams]);
+  }, [isAuthenticated, isLoading, searchParams, triggerTransition]);
 
   if (isLoading) {
     return null;
@@ -37,19 +38,19 @@ export default function AuthPage() {
     >
       <Card style={{ width: 520, padding: 32 }}>
         <Text weight="semibold" size={600} style={{ marginBottom: 8 }}>
-          Passkey Authentication
+          Welcome!
         </Text>
         <Text
           size={300}
           style={{ marginBottom: 20, color: 'var(--colorNeutralForeground3)' }}
         >
-          Login with an existing passkey or create a new one to register.
+          Login with your saved credentials or create a new bucket for yourself
         </Text>
         <div style={{ display: 'flex', gap: 12 }}>
           <Button appearance="primary" onClick={() => login().catch(() => {})}>
             Login
           </Button>
-          <Button onClick={() => register().catch(() => {})}>Register</Button>
+          <Button onClick={() => register().catch(() => {})}>Create</Button>
         </div>
       </Card>
     </div>

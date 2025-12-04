@@ -35,7 +35,10 @@ export async function GET(request: NextRequest) {
     events: asset.events ? JSON.parse(asset.events) : undefined,
   }));
 
-  return NextResponse.json(formatted);
+  return NextResponse.json({
+    assets: formatted,
+    tags: user.tags ? JSON.parse(user.tags) : {},
+  });
 }
 
 export async function POST(request: NextRequest) {

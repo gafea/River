@@ -21,20 +21,9 @@ function NavigationContent() {
   const searchParams = useSearchParams();
   const activeTag = searchParams.get('tag');
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [isDark, setIsDark] = useState(false);
   const lastPathnameRef = useRef<string | undefined>(undefined);
   const { isAuthenticated, logout } = useAuth();
   const { openNewAssetModal } = useUI();
-
-  // Detect theme preference
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setIsDark(mediaQuery.matches);
-
-    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, []);
 
   // Load assets on client side only
   useEffect(() => {
@@ -99,11 +88,11 @@ function NavigationContent() {
               icon={<Home24Regular />}
               label="All"
               active={
-                isActivePath('/dashboard') &&
+                isActivePath('/assets') &&
                 !activeTag &&
                 !searchParams.get('search')
               }
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push('/assets')}
               style={{ width: '90px', height: '90px' }}
             />
             <GooeyButton
@@ -135,7 +124,7 @@ function NavigationContent() {
                 onClick={() => {
                   const params = new URLSearchParams();
                   params.set('tag', tag);
-                  router.push(`/dashboard?${params.toString()}`);
+                  router.push(`/assets?${params.toString()}`);
                 }}
                 style={{ width: '90px', height: '90px' }}
               />

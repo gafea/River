@@ -8,7 +8,7 @@ vi.mock('@/lib/store', () => {
   return {
     addAsset: vi.fn(),
     updateAsset: vi.fn(),
-    getTagDefaults: vi.fn(() => ({})),
+    getTags: vi.fn(() => ({})),
     getAllAssets: vi.fn(() => Promise.resolve([])),
   };
 });

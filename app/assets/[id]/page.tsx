@@ -141,29 +141,16 @@ export default function AssetDetailPage() {
     return data;
   }, [asset]);
 
-  const todayDate = new Date().toISOString().slice(0, 10);
   const todayTimestamp = new Date().getTime();
 
   const handleDelete = async () => {
     await deleteAsset(id);
-    router.push('/dashboard');
+    router.push('/assets');
   };
 
   // Show loading state during hydration to prevent hydration mismatch
   if (isLoading) {
-    return (
-      <main className="container">
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            padding: '48px',
-          }}
-        >
-          <div className="d_loading" />
-        </div>
-      </main>
-    );
+    return <main className="container"></main>;
   }
 
   if (!asset) {
@@ -181,6 +168,7 @@ export default function AssetDetailPage() {
       <div
         style={{
           marginBottom: 24,
+          marginTop: 1,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',

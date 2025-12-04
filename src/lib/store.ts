@@ -4,7 +4,7 @@ import { Asset } from './types';
 
 const STORAGE_KEY = 'assets.v1';
 const INITIALIZED_KEY = 'assets.initialized';
-const TAG_DEFAULTS_KEY = 'tagDefaults.v1';
+const TAG_DEFAULTS_KEY = 'tags.v1';
 
 function read(): Asset[] {
   if (typeof window === 'undefined') return [];
@@ -18,7 +18,7 @@ function read(): Asset[] {
   }
 }
 
-export function getTagDefaults(): Record<string, number> {
+export function getTags(): Record<string, number> {
   if (typeof window === 'undefined') return {};
   try {
     const raw = window.localStorage.getItem(TAG_DEFAULTS_KEY);
@@ -30,7 +30,7 @@ export function getTagDefaults(): Record<string, number> {
   }
 }
 
-function writeTagDefaults(data: Record<string, number>) {
+function writeTags(data: Record<string, number>) {
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.setItem(TAG_DEFAULTS_KEY, JSON.stringify(data));
@@ -65,7 +65,12 @@ export async function getAllAssets(): Promise<Asset[]> {
   try {
     const res = await fetch('/api/assets');
     if (res.ok) {
-      return res.json();
+      const data = await res.json();
+      if (data.assets && data.tags) {
+        writeTags(data.tags);
+        return data.assets;
+      }
+      return Array.isArray(data) ? data : [];
     } else if (res.status === 401) {
       // Not authenticated, return empty
       return [];
@@ -198,7 +203,7 @@ export function clearAllUserData() {
     try {
       window.localStorage.removeItem('assets.v1');
       window.localStorage.removeItem('assets.initialized');
-      window.localStorage.removeItem('tagDefaults.v1');
+      window.localStorage.removeItem('tags.v1');
     } catch (e) {
       console.warn('Failed to clear user data', e);
     }
@@ -207,7 +212,14 @@ export function clearAllUserData() {
 
 export function setTagDefault(tag: string, weeks: number) {
   if (!tag || weeks <= 0) return;
-  const defaults = getTagDefaults();
+  const defaults = getTags();
   defaults[tag] = weeks;
-  writeTagDefaults(defaults);
+  writeTags(defaults);
+
+  // Sync with server
+  fetch('/api/tags', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(defaults),
+  }).catch((e) => console.warn('Failed to sync tag defaults', e));
 }
