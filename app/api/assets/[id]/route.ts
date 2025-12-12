@@ -3,6 +3,39 @@ import { sessionOptions } from '@/lib/session';
 import { getIronSession } from 'iron-session';
 import { prisma } from '@/lib/db';
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const res = NextResponse.next();
+  const session = (await getIronSession(request, res, sessionOptions)) as any;
+
+  if (!session.userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const asset = await prisma.asset.findUnique({
+    where: { id: id },
+  });
+
+  if (!asset) {
+    return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
+  }
+
+  if (asset.userId !== session.userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  }
+
+  const formatted = {
+    ...asset,
+    tag: asset.tag,
+    events: asset.events ? JSON.parse(asset.events) : undefined,
+  };
+
+  return NextResponse.json(formatted);
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

@@ -32,58 +32,76 @@ export default function RiverTransition() {
     'hidden' | 'entering' | 'holding' | 'exiting'
   >('hidden');
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number>(0);
   const isDev = process.env.NODE_ENV === 'development';
-  const DURATION = 550;
+  const DURATION = 650;
 
   useEffect(() => {
-    if (isNavigating || showTransitionOverlay) {
-      const delay = isDev ? 0 : 100;
+    let active = true;
 
-      timeoutRef.current = setTimeout(() => {
-        setStage('entering');
-        setTimeout(() => {
-          setStage((prev) => (prev === 'entering' ? 'holding' : prev));
-        }, DURATION);
-      }, delay);
+    if (isNavigating || showTransitionOverlay) {
+      if (stage === 'hidden' && !timeoutRef.current) {
+        const delay = isDev ? 0 : 100;
+
+        timeoutRef.current = setTimeout(() => {
+          if (!active) return;
+          setStage('entering');
+          startTimeRef.current = Date.now();
+          setTimeout(() => {
+            if (active)
+              setStage((prev) => (prev === 'entering' ? 'holding' : prev));
+          }, DURATION);
+        }, delay);
+      }
     } else {
       // Navigation finished
-      if (timeoutRef.current) {
+      if (stage === 'hidden' && timeoutRef.current) {
+        // Cancel if we haven't started yet
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
-      }
-
-      // Only exit if not navigating AND not waiting for page load AND not showing overlay
-      if (
-        !isPageLoading &&
-        !showTransitionOverlay &&
-        (stage === 'entering' || stage === 'holding')
-      ) {
-        const isEarlyInterrupt = isDev && stage === 'entering';
-        const exitDelay = isEarlyInterrupt ? DURATION * 2 : 0;
+      } else if (stage === 'entering' || stage === 'holding') {
+        // Wait for transition to finish if needed
+        const elapsed = Date.now() - startTimeRef.current;
+        const remaining = Math.max(0, DURATION * 2 - elapsed);
 
         const exitTimer = setTimeout(() => {
-          setStage('exiting');
-          setTimeout(() => {
-            setStage('hidden');
-          }, DURATION);
-        }, exitDelay);
+          if (active) {
+            setStage('exiting');
+            setTimeout(() => {
+              if (active) {
+                setStage('hidden');
+                timeoutRef.current = null;
+              }
+            }, DURATION);
+          }
+        }, remaining);
 
         return () => clearTimeout(exitTimer);
       }
     }
 
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      active = false;
     };
-  }, [isNavigating, isPageLoading, showTransitionOverlay]); // Re-run when isPageLoading changes
+  }, [isNavigating, isPageLoading, showTransitionOverlay, stage]);
 
   const isHidden = stage === 'hidden';
   const isEntering = stage === 'entering';
   const isHolding = stage === 'holding';
+  const isExiting = stage === 'exiting';
 
   const blobPath = useMemo(() => generateWavyCirclePath(80, 3, 12, 128), []);
   const blobMask = `url("data:image/svg+xml,%3Csvg viewBox='-100 -100 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='black' d='${blobPath}' /%3E%3C/svg%3E")`;
-  const maskSize = isEntering || isHolding ? '200vmax' : '0px';
+
+  const getMaskSize = () => {
+    if (isHidden) return '300vmax';
+    if (isEntering) return '0px';
+    if (isHolding) return '0px';
+    if (isExiting) return '300vmax';
+    return '300vmax';
+  };
+
+  const maskSize = getMaskSize();
 
   return (
     <div
@@ -102,10 +120,10 @@ export default function RiverTransition() {
       <style jsx global>{`
         @keyframes spinSlow {
           from {
-            transform: translate(-50%, -50%) rotate(0deg);
+            transform: rotate(0deg);
           }
           to {
-            transform: translate(-50%, -50%) rotate(360deg);
+            transform: rotate(360deg);
           }
         }
         @keyframes spinReverse {
@@ -121,83 +139,80 @@ export default function RiverTransition() {
       <div
         style={{
           position: 'absolute',
-          left: '50%',
-          top: '50%',
-          width: '150vmax',
-          height: '150vmax',
-          transform: 'translate(-50%, -50%)',
+          inset: 0,
           backgroundColor: '#0078d4',
-
-          maskImage: blobMask,
-          WebkitMaskImage: blobMask,
-          maskSize: maskSize,
-          WebkitMaskSize: maskSize,
-          maskPosition: 'center',
-          WebkitMaskPosition: 'center',
-          maskRepeat: 'no-repeat',
-          WebkitMaskRepeat: 'no-repeat',
-
-          transition: `mask-size ${DURATION}ms cubic-bezier(0.4, 0, 0.2, 1), -webkit-mask-size ${DURATION}ms cubic-bezier(0.4, 0, 0.2, 1)`,
-
+          maskImage: `${blobMask}, linear-gradient(black, black)`,
+          WebkitMaskImage: `${blobMask}, linear-gradient(black, black)`,
+          maskSize: `${maskSize}, 100% 100%`,
+          WebkitMaskSize: `${maskSize}, 100% 100%`,
+          maskPosition: 'center, center',
+          WebkitMaskPosition: 'center, center',
+          maskRepeat: 'no-repeat, no-repeat',
+          WebkitMaskRepeat: 'no-repeat, no-repeat',
+          maskComposite: 'exclude',
+          WebkitMaskComposite: 'destination-out',
+          transitionDelay: isExiting ? `${DURATION}ms` : '0ms',
+          transitionDuration: `${DURATION}ms`,
+          transitionTimingFunction: 'ease',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-
+        }}
+      ></div>
+      <div
+        style={{
+          position: 'absolute',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          scale: !isHidden ? '1' : '0',
           animation: 'spinSlow 20s linear infinite',
+          transitionDelay: !isHidden ? `${DURATION / 4}ms` : '0ms',
+          transitionDuration: `${DURATION / 2}ms`,
+          transitionTimingFunction: !isHidden
+            ? 'cubic-bezier(0.34, 1.56, 0.64, 1)'
+            : 'cubic-bezier(0.36, 0, 0.66, -0.56)',
         }}
       >
         <div
           style={{
-            position: 'relative',
+            position: 'absolute',
             width: '400px',
             height: '400px',
+            backgroundColor: 'white',
+            maskImage: blobMask,
+            WebkitMaskImage: blobMask,
+            maskSize: 'contain',
+            WebkitMaskSize: 'contain',
+            maskPosition: 'center',
+            WebkitMaskPosition: 'center',
+            maskRepeat: 'no-repeat',
+            WebkitMaskRepeat: 'no-repeat',
+          }}
+        />
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 1,
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            opacity: !isHidden ? 1 : 0,
-            transform: !isHidden ? 'scale(1)' : 'scale(0.5)',
-            transition: isEntering
-              ? `opacity ${DURATION}ms ease, transform ${DURATION}ms cubic-bezier(0.33, 1.5, 0.5, 1)`
-              : 'none',
+            animation: 'spinReverse 20s linear infinite',
           }}
         >
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundColor: 'white',
-              maskImage: blobMask,
-              WebkitMaskImage: blobMask,
-              maskSize: 'contain',
-              WebkitMaskSize: 'contain',
-              maskPosition: 'center',
-              WebkitMaskPosition: 'center',
-              maskRepeat: 'no-repeat',
-              WebkitMaskRepeat: 'no-repeat',
-            }}
-          />
-
-          <div
-            style={{
-              position: 'relative',
-              zIndex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              animation: 'spinReverse 20s linear infinite',
-            }}
+          <Text
+            size={800}
+            weight="bold"
+            align="center"
+            style={{ color: '#0078d4', fontSize: '4rem', marginBottom: 40 }}
           >
-            <Text
-              size={800}
-              weight="bold"
-              align="center"
-              style={{ color: '#0078d4', fontSize: '4rem', marginBottom: 40 }}
-            >
-              River
-            </Text>
-            <div className="d_loading" />
-          </div>
+            River
+          </Text>
+          <div
+            className="d_loading"
+            style={{ transitionDuration: '0s', transitionDelay: '0s' }}
+          />
         </div>
       </div>
     </div>

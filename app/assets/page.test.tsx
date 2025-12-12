@@ -175,7 +175,7 @@ describe('Dashboard Import/Export Logic', () => {
         purchaseValue: 1000,
         expectedLifeWeeks: 52,
         purchaseDate: '2023-01-01',
-        tags: ['test'],
+        tag: 'test',
       });
     });
   });

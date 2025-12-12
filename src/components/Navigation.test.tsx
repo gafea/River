@@ -31,6 +31,17 @@ vi.mock('@/components/AuthProvider', () => ({
   useAuth: vi.fn(),
 }));
 
+const mockOpenNewAssetModal = vi.fn();
+
+vi.mock('./UIContext', () => ({
+  useUI: vi.fn(() => ({
+    isSidebarOpen: true,
+    toggleSidebar: vi.fn(),
+    closeSidebar: vi.fn(),
+    openNewAssetModal: mockOpenNewAssetModal,
+  })),
+}));
+
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -96,13 +107,13 @@ describe('Navigation', () => {
     expect(screen.getByText('Office (1)')).toBeTruthy();
   });
 
-  it('navigates to new asset page', async () => {
+  it('opens new asset modal', async () => {
     await act(async () => {
       render(<Navigation />);
     });
 
     fireEvent.click(screen.getByText('New Asset'));
-    expect(mockPush).toHaveBeenCalledWith('/assets?new=1');
+    expect(mockOpenNewAssetModal).toHaveBeenCalled();
   });
 
   it('navigates to search page', async () => {

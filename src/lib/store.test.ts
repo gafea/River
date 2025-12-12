@@ -6,7 +6,6 @@ import {
   deleteAsset,
   clearAllAssets,
 } from './store';
-import type { Asset } from './types';
 
 // Mock localStorage
 const localStorageMock = {
@@ -21,225 +20,107 @@ Object.defineProperty(window, 'localStorage', {
 
 describe('store', () => {
   beforeEach(() => {
-    // Clear localStorage mocks
     vi.clearAllMocks();
-    // Mock fetch to fail so we test the fallback logic (localStorage)
-    global.fetch = vi.fn().mockRejectedValue(new Error('API not available'));
+    global.fetch = vi.fn();
   });
 
-  it('returns empty array when no assets stored', async () => {
-    // Mock no assets and already initialized
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === 'assets.v1') return null;
-      if (key === 'assets.initialized') return 'true';
-      return null;
+  it('returns empty array when API returns empty', async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      json: async () => ({ assets: [], tags: {} }),
     });
     const assets = await getAllAssets();
     expect(assets).toEqual([]);
   });
 
-  it('returns stored assets', async () => {
-    const mockAssets: Asset[] = [
-      {
-        id: '1',
-        name: 'Test Asset',
-        purchaseValue: 1000,
-        expectedLifeWeeks: 52,
-        purchaseDate: '2023-01-01',
-        tag: 'test',
-      },
-    ];
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === 'assets.v1') return JSON.stringify(mockAssets);
-      if (key === 'assets.initialized') return 'true';
-      return null;
+  it('returns assets from API', async () => {
+    const mockAssets = [{ id: '1', name: 'Test', tag: 'test' }];
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      json: async () => ({ assets: mockAssets, tags: {} }),
     });
-
     const assets = await getAllAssets();
     expect(assets).toEqual(mockAssets);
-    expect(assets[0].name).toBe('Test Asset');
   });
 
-  it('saves new asset', async () => {
-    const newAssetData = {
-      name: 'New Asset',
-      purchaseValue: 500,
-      expectedLifeWeeks: 26,
-      purchaseDate: '2024-01-01',
-      tag: 'electronics',
-    };
+  it('saves new asset via API', async () => {
+    const newAsset = { name: 'New', tag: 'test', expectedLifeWeeks: 10 };
+    const createdAsset = { ...newAsset, id: '123' };
 
-    await addAsset(newAssetData);
+    (global.fetch as any).mockImplementation((url: string) => {
+      if (url === '/api/assets') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => createdAsset,
+        });
+      }
+      if (url === '/api/tags') {
+        return Promise.resolve({ ok: true });
+      }
+      return Promise.reject();
+    });
 
-    // Check that localStorage.setItem was called with the new asset
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      'assets.v1',
-      expect.stringContaining('"name":"New Asset"'),
+    const result = await addAsset(newAsset as any);
+    expect(result).toEqual(createdAsset);
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/assets',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify(newAsset),
+      }),
     );
   });
 
-  it('updates existing asset', async () => {
-    const existingAsset: Asset = {
+  it('updates existing asset via API', async () => {
+    const updatedAsset = {
       id: '1',
-      name: 'Old Name',
-      purchaseValue: 1000,
-      expectedLifeWeeks: 52,
-      purchaseDate: '2023-01-01',
-      tag: 'old',
-    };
-
-    const updatedAsset: Asset = {
-      ...existingAsset,
-      name: 'Updated Name',
-      tag: 'updated',
-    };
-
-    // Mock existing data
-    localStorageMock.getItem.mockReturnValueOnce(
-      JSON.stringify([existingAsset]),
-    );
-
-    await updateAsset(updatedAsset);
-
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      'assets.v1',
-      JSON.stringify([updatedAsset]),
-    );
-  });
-
-  it('deletes asset by id', async () => {
-    const assets: Asset[] = [
-      {
-        id: '1',
-        name: 'Asset 1',
-        purchaseValue: 100,
-        expectedLifeWeeks: 10,
-        purchaseDate: '2023-01-01',
-        tag: '',
-      },
-      {
-        id: '2',
-        name: 'Asset 2',
-        purchaseValue: 200,
-        expectedLifeWeeks: 20,
-        purchaseDate: '2023-01-01',
-        tag: '',
-      },
-    ];
-
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === 'assets.v1') return JSON.stringify(assets);
-      if (key === 'assets.initialized') return 'true';
-      return null;
-    });
-
-    await deleteAsset('1');
-
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      'assets.v1',
-      JSON.stringify([assets[1]]), // Only asset with id '2' should remain
-    );
-  });
-
-  it('handles deleting non-existent asset', async () => {
-    const assets: Asset[] = [
-      {
-        id: '1',
-        name: 'Asset 1',
-        purchaseValue: 100,
-        expectedLifeWeeks: 10,
-        purchaseDate: '2023-01-01',
-        tag: '',
-      },
-    ];
-
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === 'assets.v1') return JSON.stringify(assets);
-      if (key === 'assets.initialized') return 'true';
-      return null;
-    });
-
-    await deleteAsset('999'); // Non-existent ID
-
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      'assets.v1',
-      JSON.stringify(assets), // Should remain unchanged
-    );
-  });
-
-  it('handles malformed JSON gracefully', async () => {
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === 'assets.v1') return 'invalid json';
-      if (key === 'assets.initialized') return 'true';
-      return null;
-    });
-
-    // Should not throw and return empty array
-    await expect(getAllAssets()).resolves.toEqual([]);
-  });
-
-  it('generates unique IDs for new assets', async () => {
-    const asset1Data = {
-      name: 'Asset 1',
-      purchaseValue: 100,
+      name: 'Updated',
+      tag: 'test',
       expectedLifeWeeks: 10,
-      purchaseDate: '2023-01-01',
-      tag: '',
     };
 
-    const asset2Data = {
-      name: 'Asset 2',
-      purchaseValue: 200,
-      expectedLifeWeeks: 20,
-      purchaseDate: '2023-01-01',
-      tag: '',
-    };
+    (global.fetch as any).mockImplementation((url: string) => {
+      if (url.includes('/api/assets/1')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => updatedAsset,
+        });
+      }
+      if (url === '/api/tags') {
+        return Promise.resolve({ ok: true });
+      }
+      return Promise.reject();
+    });
 
-    const addedAsset1 = await addAsset(asset1Data);
-    const addedAsset2 = await addAsset(asset2Data);
-
-    expect(addedAsset1.id).not.toBe('');
-    expect(addedAsset2.id).not.toBe('');
-    expect(addedAsset1.id).not.toBe(addedAsset2.id);
+    await updateAsset(updatedAsset as any);
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/assets/1',
+      expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify(updatedAsset),
+      }),
+    );
   });
 
-  it('clears all assets', async () => {
-    const assets: Asset[] = [
-      {
-        id: '1',
-        name: 'Asset 1',
-        purchaseValue: 100,
-        expectedLifeWeeks: 10,
-        purchaseDate: '2023-01-01',
-        tag: '',
-      },
-      {
-        id: '2',
-        name: 'Asset 2',
-        purchaseValue: 200,
-        expectedLifeWeeks: 20,
-        purchaseDate: '2023-01-01',
-        tag: '',
-      },
-    ];
+  it('deletes asset via API', async () => {
+    (global.fetch as any).mockResolvedValue({ ok: true });
+    await deleteAsset('1');
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/assets/1',
+      expect.objectContaining({
+        method: 'DELETE',
+      }),
+    );
+  });
 
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === 'assets.v1') return JSON.stringify(assets);
-      if (key === 'assets.initialized') return 'true';
-      return null;
-    });
-
-    // Mock successful API call
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ success: true }),
-    });
-
+  it('clears all assets via API', async () => {
+    (global.fetch as any).mockResolvedValue({ ok: true });
     await clearAllAssets();
-
-    expect(global.fetch).toHaveBeenCalledWith('/api/assets', {
-      method: 'DELETE',
-    });
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('assets.v1', '[]');
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/assets',
+      expect.objectContaining({
+        method: 'DELETE',
+      }),
+    );
   });
 });

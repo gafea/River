@@ -15,8 +15,27 @@ vi.mock('@simplewebauthn/browser', () => ({
   startAuthentication: vi.fn(),
 }));
 
+// Mock UIContext
+vi.mock('./UIContext', () => ({
+  useUI: vi.fn(() => ({
+    setPageLoading: vi.fn(),
+    setShowTransitionOverlay: vi.fn(),
+  })),
+}));
+
 // Mock window.alert
 global.alert = vi.fn();
+
+// Mock localStorage
+Object.defineProperty(window, 'localStorage', {
+  value: {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+  },
+  writable: true,
+});
 
 const mockedStartRegistration = vi.mocked(startRegistration);
 const mockedStartAuthentication = vi.mocked(startAuthentication);

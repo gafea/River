@@ -62,14 +62,16 @@ export default function NewAssetModal() {
             </div>
           </DialogTitle>
           <DialogContent>
-            <AssetForm
-              ref={formRef}
-              onSaved={() => {
-                closeNewAssetModal();
-              }}
-              onCancel={closeNewAssetModal}
-              onValidityChange={setNewValid}
-            />
+            {isNewAssetModalOpen && (
+              <AssetForm
+                ref={formRef}
+                onSaved={() => {
+                  closeNewAssetModal();
+                }}
+                onCancel={closeNewAssetModal}
+                onValidityChange={setNewValid}
+              />
+            )}
           </DialogContent>
         </DialogBody>
       </DialogSurface>

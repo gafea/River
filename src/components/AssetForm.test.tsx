@@ -18,6 +18,14 @@ vi.mock('next/navigation', () => ({
   })),
 }));
 
+vi.mock('./UIContext', () => ({
+  useUI: vi.fn(() => ({
+    isSidebarOpen: true,
+    toggleSidebar: vi.fn(),
+    closeSidebar: vi.fn(),
+  })),
+}));
+
 // Mock window.alert
 global.alert = vi.fn();
 

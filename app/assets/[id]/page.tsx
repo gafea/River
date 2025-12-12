@@ -1,13 +1,20 @@
 'use client';
 import { useParams } from 'next/navigation';
-import { getAllAssets } from '@/lib/store';
-import { calculateCurrentValue, formatCurrency } from '@/lib/utils';
+import { getAsset, deleteAsset } from '@/lib/store';
+import {
+  calculateCurrentValue,
+  formatCurrency,
+  weeksBetween,
+  calculateTotalInvested,
+  calculateDailyDepreciation,
+} from '@/lib/utils';
 import {
   Text,
   Card,
   CardHeader,
   CardPreview,
   Button,
+  ProgressBar,
 } from '@fluentui/react-components';
 import { ArrowLeft24Regular } from '@fluentui/react-icons';
 import { useRouter } from 'next/navigation';
@@ -22,7 +29,6 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { useMemo, useRef, useState, useEffect } from 'react';
-import { deleteAsset } from '@/lib/store';
 import {
   Edit24Regular,
   Delete24Regular,
@@ -48,25 +54,34 @@ export default function AssetDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const { setPageLoading, setShowTransitionOverlay } = useUI();
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const asset = assets.find((a) => a.id === id);
+  const [asset, setAsset] = useState<Asset | null>(null);
   const router = useRouter();
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const editFormRef = useRef<AssetFormHandle>(null);
   const [editValid, setEditValid] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentValue, setCurrentValue] = useState(0);
 
-  // Mark as client-side after hydration
   useEffect(() => {
-    const loadAssets = async () => {
-      const allAssets = await getAllAssets();
-      setAssets(allAssets);
+    const loadAsset = async () => {
+      const data = await getAsset(id);
+      setAsset(data);
       setIsLoading(false);
       setPageLoading(false);
     };
-    loadAssets();
-  }, [setPageLoading]);
+    loadAsset();
+  }, [id, setPageLoading]);
+
+  useEffect(() => {
+    if (!asset) return;
+    const updateCurrentValue = () => {
+      setCurrentValue(calculateCurrentValue(asset));
+    };
+    updateCurrentValue();
+    const interval = setInterval(updateCurrentValue, 15000);
+    return () => clearInterval(interval);
+  }, [asset]);
 
   const xAxisTicks = useMemo(() => {
     if (!asset) return [];
@@ -81,9 +96,9 @@ export default function AssetDetailPage() {
     const endYear = chartEnd.getFullYear();
 
     for (let year = startYear; year <= endYear; year++) {
-      const yearStart = new Date(year, 0, 1); // January 1st
+      const yearStart = new Date(year, 0, 1);
       if (yearStart >= purchaseDate && yearStart <= chartEnd) {
-        ticks.push(yearStart.getTime()); // Use timestamp instead of date string
+        ticks.push(yearStart.getTime());
       }
     }
     return ticks;
@@ -98,10 +113,8 @@ export default function AssetDetailPage() {
     const chartEnd = now > endDate ? now : endDate;
     const data = [];
 
-    // Collect all dates we want to include
     const allDates = new Set<string>();
 
-    // Add weekly dates
     for (
       let d = new Date(purchaseDate);
       d <= chartEnd;
@@ -110,23 +123,20 @@ export default function AssetDetailPage() {
       allDates.add(d.toISOString().slice(0, 10));
     }
 
-    // Ensure January 1st dates are included for tick marks
     const startYear = purchaseDate.getFullYear();
     const endYear = chartEnd.getFullYear();
     for (let year = startYear; year <= endYear; year++) {
-      const yearStart = new Date(year, 0, 1); // January 1st
+      const yearStart = new Date(year, 0, 1);
       if (yearStart >= purchaseDate && yearStart <= chartEnd) {
         allDates.add(yearStart.toISOString().slice(0, 10));
       }
     }
 
-    // Always include today's date if it's after purchase date
     const todayStr = now.toISOString().slice(0, 10);
     if (now >= purchaseDate) {
       allDates.add(todayStr);
     }
 
-    // Sort dates and create data points
     const sortedDates = Array.from(allDates).sort();
     for (const dateStr of sortedDates) {
       const d = new Date(dateStr);
@@ -148,7 +158,6 @@ export default function AssetDetailPage() {
     router.push('/assets');
   };
 
-  // Show loading state during hydration to prevent hydration mismatch
   if (isLoading) {
     return <main className="container"></main>;
   }
@@ -163,15 +172,25 @@ export default function AssetDetailPage() {
     );
   }
 
+  // Calculations for UI
+  const ageWeeks = weeksBetween(asset.purchaseDate);
+  const remainingPercentage = Math.max(
+    0,
+    100 - (ageWeeks / asset.expectedLifeWeeks) * 100,
+  );
+  const totalInvested = calculateTotalInvested(asset);
+  const dailyCost = calculateDailyDepreciation(asset);
+
   return (
     <main className="container">
+      {/* Header Section */}
       <div
         style={{
           marginBottom: 24,
           marginTop: 1,
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center',
+          alignItems: 'flex-start',
         }}
       >
         <GooeyButtonContainer>
@@ -182,6 +201,34 @@ export default function AssetDetailPage() {
             style={{ width: '80px', height: '80px' }}
           />
         </GooeyButtonContainer>
+
+        <div style={{ flex: 1, marginLeft: 24, marginRight: 24 }}>
+          <GooeyTitle text={asset.name} />
+          <div style={{ marginTop: 16 }}>
+            <Text size={600} weight="bold">
+              {formatCurrency(currentValue)}
+            </Text>
+            <div style={{ marginTop: 8 }}>
+              <ProgressBar
+                value={remainingPercentage}
+                max={100}
+                color={remainingPercentage < 20 ? 'error' : 'brand'}
+              />
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginTop: 4,
+                }}
+              >
+                <Text size={200} style={{ color: '#888' }}>
+                  {Math.round(remainingPercentage)}% life remaining
+                </Text>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <GooeyButtonContainer>
           <Dialog
             open={editDialogOpen}
@@ -235,9 +282,8 @@ export default function AssetDetailPage() {
                     asset={asset}
                     onSaved={async () => {
                       setEditDialogOpen(false);
-                      // Refresh the page data
-                      const allAssets = await getAllAssets();
-                      setAssets(allAssets);
+                      const updated = await getAsset(id);
+                      setAsset(updated);
                       setShowTransitionOverlay(false);
                     }}
                     onCancel={() => {}}
@@ -275,83 +321,102 @@ export default function AssetDetailPage() {
           </Dialog>
         </GooeyButtonContainer>
       </div>
-      <div style={{ marginBottom: '24px' }}>
-        <GooeyTitle text={asset.name} />
-      </div>
-      <Text
-        as="h2"
-        size={500}
+
+      {/* Details Grid */}
+      <div
         style={{
-          color: 'var(--colorNeutralForeground3)',
-          display: 'block',
-        }}
-      >
-        {asset.description}
-      </Text>
-      <Card
-        style={{
-          marginTop: 24,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+          gap: 16,
           marginBottom: 24,
-          backgroundColor: 'var(--colorNeutralBackground2)',
         }}
       >
-        <CardHeader header={<Text weight="semibold">Details</Text>} />
-        <div style={{ padding: 16 }}>
-          <Text>Purchase Value: {formatCurrency(asset.purchaseValue)}</Text>
-          <br />
-          <Text>
-            Current Value: {formatCurrency(calculateCurrentValue(asset))}
-          </Text>
-          <br />
-          <Text>Expected Life: {asset.expectedLifeWeeks} weeks</Text>
-          <br />
-          <Text>Purchase Date: {asset.purchaseDate}</Text>
-          <br />
-          <Text>
-            Terminal Price:{' '}
-            {asset.terminalPrice
-              ? formatCurrency(asset.terminalPrice)
-              : 'Full depreciation'}
-          </Text>
-          <br />
-          <Text>Tag: {asset.tag || 'None'}</Text>
-          <br />
-          {asset.events && asset.events.length > 0 && (
-            <>
-              <Text>Events:</Text>
-              <ul>
-                {asset.events
-                  .sort(
-                    (a, b) =>
-                      new Date(a.date).getTime() - new Date(b.date).getTime(),
-                  )
-                  .map((e, i) => (
-                    <li key={i}>
-                      {e.date}: {e.amount >= 0 ? '+' : ''}
-                      {formatCurrency(e.amount)}{' '}
-                      {e.description && `(${e.description})`}
-                    </li>
-                  ))}
-              </ul>
-            </>
-          )}
-        </div>
-        {asset.photoDataUrl && (
-          <CardPreview>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={asset.photoDataUrl}
-              alt={asset.name}
-              style={{
-                width: '100%',
-                objectFit: 'cover',
-                maxHeight: 300,
-                borderRadius: '8px',
-              }}
-            />
-          </CardPreview>
-        )}
-      </Card>
+        <Card style={{ backgroundColor: 'var(--colorNeutralBackground2)' }}>
+          <CardHeader header={<Text weight="semibold">Purchase Value</Text>} />
+          <div style={{ padding: '0 16px 16px' }}>
+            <Text size={400}>{formatCurrency(asset.purchaseValue)}</Text>
+          </div>
+        </Card>
+        <Card style={{ backgroundColor: 'var(--colorNeutralBackground2)' }}>
+          <CardHeader header={<Text weight="semibold">Purchase Date</Text>} />
+          <div style={{ padding: '0 16px 16px' }}>
+            <Text size={400}>{asset.purchaseDate}</Text>
+          </div>
+        </Card>
+        <Card style={{ backgroundColor: 'var(--colorNeutralBackground2)' }}>
+          <CardHeader header={<Text weight="semibold">Expected Life</Text>} />
+          <div style={{ padding: '0 16px 16px' }}>
+            <Text size={400}>{asset.expectedLifeWeeks} weeks</Text>
+          </div>
+        </Card>
+        <Card style={{ backgroundColor: 'var(--colorNeutralBackground2)' }}>
+          <CardHeader header={<Text weight="semibold">Daily Cost</Text>} />
+          <div style={{ padding: '0 16px 16px' }}>
+            <Text size={400}>{formatCurrency(dailyCost)} / day</Text>
+          </div>
+        </Card>
+        <Card style={{ backgroundColor: 'var(--colorNeutralBackground2)' }}>
+          <CardHeader header={<Text weight="semibold">Tag</Text>} />
+          <div style={{ padding: '0 16px 16px' }}>
+            <Text size={400}>{asset.tag || 'None'}</Text>
+          </div>
+        </Card>
+        <Card style={{ backgroundColor: 'var(--colorNeutralBackground2)' }}>
+          <CardHeader header={<Text weight="semibold">Terminal Price</Text>} />
+          <div style={{ padding: '0 16px 16px' }}>
+            <Text size={400}>
+              {asset.terminalPrice
+                ? formatCurrency(asset.terminalPrice)
+                : 'Full depreciation'}
+            </Text>
+          </div>
+        </Card>
+      </div>
+
+      {/* Description Card */}
+      {asset.description && (
+        <Card
+          style={{
+            marginBottom: 24,
+            backgroundColor: 'var(--colorNeutralBackground2)',
+          }}
+        >
+          <CardHeader header={<Text weight="semibold">Description</Text>} />
+          <div style={{ padding: '0 16px 16px' }}>
+            <Text>{asset.description}</Text>
+          </div>
+        </Card>
+      )}
+
+      {/* Events Card */}
+      {asset.events && asset.events.length > 0 && (
+        <Card
+          style={{
+            marginBottom: 24,
+            backgroundColor: 'var(--colorNeutralBackground2)',
+          }}
+        >
+          <CardHeader header={<Text weight="semibold">Events</Text>} />
+          <div style={{ padding: '0 16px 16px' }}>
+            <ul>
+              {asset.events
+                .sort(
+                  (a, b) =>
+                    new Date(a.date).getTime() - new Date(b.date).getTime(),
+                )
+                .map((e, i) => (
+                  <li key={i}>
+                    {e.date}: {e.amount >= 0 ? '+' : ''}
+                    {formatCurrency(e.amount)}{' '}
+                    {e.description && `(${e.description})`}
+                  </li>
+                ))}
+            </ul>
+          </div>
+        </Card>
+      )}
+
+      {/* Chart Card */}
       <Card style={{ backgroundColor: 'var(--colorNeutralBackground2)' }}>
         <CardHeader header={<Text weight="semibold">Value Over Time</Text>} />
         <div style={{ height: 400 }}>

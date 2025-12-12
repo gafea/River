@@ -44,7 +44,7 @@ export default function AuthPage() {
           size={300}
           style={{ marginBottom: 20, color: 'var(--colorNeutralForeground3)' }}
         >
-          Login with your saved credentials or create a new bucket for yourself
+          Login with your saved credentials or create a new bucket!
         </Text>
         <div style={{ display: 'flex', gap: 12 }}>
           <Button appearance="primary" onClick={() => login().catch(() => {})}>

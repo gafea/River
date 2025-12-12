@@ -41,6 +41,14 @@ vi.mock('@/lib/utils', () => ({
   calculateCurrentValue: vi.fn(() => 960), // Mock current value
 }));
 
+// Mock UIContext
+const mockTriggerTransition = vi.fn();
+vi.mock('./UIContext', () => ({
+  useUI: vi.fn(() => ({
+    triggerTransition: mockTriggerTransition,
+  })),
+}));
+
 // Import the mocked functions
 const {
   formatCurrency,
@@ -124,7 +132,7 @@ describe('AssetCard', () => {
     const card = screen.getByText('Test Laptop').closest('.asset-card');
     fireEvent.click(card!);
 
-    expect(mockPush).toHaveBeenCalledWith('/assets/test-1');
+    expect(mockTriggerTransition).toHaveBeenCalledWith('/assets/test-1', true);
   });
 
   it('handles assets with no tags', () => {
