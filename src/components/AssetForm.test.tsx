@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+} from '@testing-library/react';
 import AssetForm from './AssetForm';
 import { addAsset, updateAsset } from '@/lib/store';
 import type { Asset } from '@/lib/types';
@@ -34,8 +40,10 @@ describe('AssetForm', () => {
     vi.clearAllMocks();
   });
 
-  it('renders form fields', () => {
+  it('renders form fields', async () => {
     render(<AssetForm />);
+
+    await waitFor(() => expect(screen.getByLabelText(/Name/i)).toBeTruthy());
 
     expect(screen.getByLabelText(/Name/i)).toBeTruthy();
     expect(screen.getByLabelText(/Description/i)).toBeTruthy();
@@ -45,7 +53,7 @@ describe('AssetForm', () => {
     expect(screen.getByLabelText(/Tag/i)).toBeTruthy();
   });
 
-  it('populates form with existing asset data', () => {
+  it('populates form with existing asset data', async () => {
     const asset: Asset = {
       id: '1',
       name: 'Test Asset',
@@ -59,7 +67,10 @@ describe('AssetForm', () => {
 
     render(<AssetForm asset={asset} />);
 
-    expect(screen.getByDisplayValue('Test Asset')).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.getByDisplayValue('Test Asset')).toBeTruthy(),
+    );
+
     expect(screen.getByDisplayValue('Test Description')).toBeTruthy();
     expect(screen.getByDisplayValue('100')).toBeTruthy();
     expect(screen.getByDisplayValue('52')).toBeTruthy();
@@ -176,6 +187,8 @@ describe('AssetForm', () => {
 
   it('handles events addition and removal', async () => {
     render(<AssetForm />);
+
+    await waitFor(() => expect(screen.getByText('Add Event')).toBeTruthy());
 
     // Add event
     fireEvent.click(screen.getByText('Add Event'));

@@ -39,7 +39,9 @@ export default function AuthShell({ children }: { children: ReactNode }) {
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       {/* Navigation removed for immersive experience */}
-      <main style={{ flex: 1, position: 'relative' }}>{children}</main>
+      <main style={{ flex: 1, position: 'relative', overflow: 'auto' }}>
+        {children}
+      </main>
       <NewAssetModal />
       <RiverTransition />
     </div>

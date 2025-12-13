@@ -6,7 +6,7 @@ import { prisma } from '@/lib/db';
 export async function GET(request: Request) {
   const res = NextResponse.next();
   const session = await getIronSession(request as any, res, sessionOptions);
-  
+
   if (!(session as any)?.userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { AuthProvider, useAuth } from './AuthProvider';
 import {
   startRegistration,
@@ -56,6 +56,8 @@ describe('AuthProvider', () => {
   it('should initialize with unauthenticated state', async () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
     expect(result.current.isAuthenticated).toBe(false);
     expect(result.current.userId).toBeNull();
   });
@@ -111,14 +113,24 @@ describe('AuthProvider', () => {
     it('should handle registration failure', async () => {
       const mockOptions = { challenge: 'mock-challenge' };
 
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockOptions),
-      });
+      (global.fetch as any)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockOptions),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({ authenticated: false }),
+        });
 
       mockedStartRegistration.mockRejectedValue(new Error('User cancelled'));
 
       const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
 
       await act(async () => {
         await result.current.register();
@@ -221,7 +233,7 @@ describe('AuthProvider', () => {
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       // Wait for initial load
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
 
       await act(async () => {
         await result.current.logout();

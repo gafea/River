@@ -6,8 +6,12 @@ import { calculateCurrentValue } from '@/lib/utils';
 import AssetCard from '@/components/AssetCard';
 import { Text, Input, InputOnChangeData } from '@fluentui/react-components';
 import { Suspense } from 'react';
+import { GooeyButton, GooeyButtonContainer } from '@/components/GooeyButton';
+import { ArrowLeft24Regular } from '@fluentui/react-icons';
+import { useUI } from '@/components/UIContext';
 
 function SearchContent() {
+  const { triggerTransition } = useUI();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
@@ -71,14 +75,17 @@ function SearchContent() {
 
   return (
     <main className="container">
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <Text as="h1" size={800} weight="semibold">
+      <div className="flex items-center gap-4 mb-8">
+        <GooeyButtonContainer>
+          <GooeyButton
+            icon={<ArrowLeft24Regular />}
+            label="Back"
+            onClick={() => triggerTransition('/')}
+            style={{ width: '80px', height: '80px' }}
+          />
+        </GooeyButtonContainer>
+        <br />
+        <Text size={800} weight="bold">
           Search Assets
         </Text>
       </div>

@@ -182,7 +182,7 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
       if (onSaved) {
         onSaved(saved);
       } else {
-        router.push('/assets');
+        router.push('/');
       }
     } catch (e) {
       if (e instanceof DOMException && e.name === 'QuotaExceededError') {

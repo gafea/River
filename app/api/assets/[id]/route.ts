@@ -61,6 +61,9 @@ export async function PUT(
     photoDataUrl,
     terminalPrice,
     events,
+    isSold,
+    soldDate,
+    soldValue,
   } = body;
 
   if (photoDataUrl && !photoDataUrl.startsWith('data:image/')) {
@@ -89,6 +92,9 @@ export async function PUT(
       photoDataUrl,
       terminalPrice,
       events: events ? JSON.stringify(events) : null,
+      isSold,
+      soldDate,
+      soldValue,
     },
   });
 

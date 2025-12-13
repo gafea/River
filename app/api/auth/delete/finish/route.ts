@@ -64,21 +64,21 @@ export async function POST(request: NextRequest) {
         assets: true,
         incomeSources: true,
         incomeEntries: true,
-      }
+      },
     });
 
     if (!user) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const exportData = {
-        userId: session.userId,
-        assets: user.assets,
-        incomeSources: user.incomeSources,
-        incomeEntries: user.incomeEntries,
-        tags: user.tags ? JSON.parse(user.tags) : {},
-        version: 1,
-        exportDate: new Date().toISOString(),
+      userId: session.userId,
+      assets: user.assets,
+      incomeSources: user.incomeSources,
+      incomeEntries: user.incomeEntries,
+      tags: user.tags ? JSON.parse(user.tags) : {},
+      version: 1,
+      exportDate: new Date().toISOString(),
     };
 
     // 2. Delete user

@@ -1,6 +1,6 @@
 'use client';
 
-import { Asset } from './types';
+import { Asset, IncomeSource } from './types';
 
 const TAG_DEFAULTS_KEY = 'tags.v1';
 
@@ -86,7 +86,9 @@ export async function addAsset(asset: Omit<Asset, 'id'>): Promise<Asset> {
     assetsCache.push(newAsset);
     return newAsset;
   } else {
-    throw new Error('Failed to create asset');
+    const errorText = await res.text();
+    console.error('Failed to create asset:', res.status, errorText);
+    throw new Error('Failed to create asset: ' + errorText);
   }
 }
 
@@ -148,4 +150,28 @@ export function setTagDefault(tag: string, weeks: number) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(defaults),
   }).catch((e) => console.warn('Failed to sync tag defaults', e));
+}
+
+export async function addIncomeSource(
+  source: Omit<IncomeSource, 'id'>,
+): Promise<IncomeSource> {
+  const res = await fetch('/api/user/income-sources', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(source),
+  });
+  if (res.ok) {
+    return await res.json();
+  } else {
+    throw new Error('Failed to create income source');
+  }
+}
+
+export async function clearAllIncomeSources() {
+  const res = await fetch('/api/user/income-sources', {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    throw new Error('Failed to clear income sources');
+  }
 }

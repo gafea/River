@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db';
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const res = NextResponse.next();
   const session = await getIronSession(request as any, res, sessionOptions);
@@ -28,7 +28,7 @@ export async function DELETE(
 
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const res = NextResponse.next();
   const session = await getIronSession(request as any, res, sessionOptions);
@@ -39,7 +39,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await request.json();
-  const { name, type, amount } = body;
+  const { name, type, amount, startDate, endDate } = body;
 
   const source = await prisma.incomeSource.update({
     where: {
@@ -50,6 +50,8 @@ export async function PUT(
       name,
       type,
       amount: amount ? parseFloat(amount) : null,
+      startDate,
+      endDate,
     },
   });
 

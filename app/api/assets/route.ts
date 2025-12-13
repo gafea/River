@@ -74,7 +74,19 @@ export async function POST(request: NextRequest) {
     photoDataUrl,
     terminalPrice,
     events,
+    isSold,
+    soldDate,
+    soldValue,
   } = body;
+
+  let parsedEvents = events;
+  if (typeof events === 'string') {
+    try {
+      parsedEvents = JSON.parse(events);
+    } catch {
+      // If parsing fails, we'll let the array check fail below
+    }
+  }
 
   if (photoDataUrl && !photoDataUrl.startsWith('data:image/')) {
     return NextResponse.json(
@@ -83,7 +95,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (events && !Array.isArray(events)) {
+  if (parsedEvents && !Array.isArray(parsedEvents)) {
     return NextResponse.json(
       { error: 'Events must be an array' },
       { status: 400 },
@@ -101,7 +113,10 @@ export async function POST(request: NextRequest) {
         tag: tag || '',
         photoDataUrl: photoDataUrl ?? null,
         terminalPrice: terminalPrice ?? null,
-        events: events ? JSON.stringify(events) : null,
+        events: parsedEvents ? JSON.stringify(parsedEvents) : null,
+        isSold: isSold ?? false,
+        soldDate: soldDate ?? null,
+        soldValue: soldValue ?? null,
         userId: session.userId,
       },
     });

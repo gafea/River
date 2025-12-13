@@ -1,6 +1,6 @@
 'use client';
 import { useParams } from 'next/navigation';
-import { getAsset, deleteAsset } from '@/lib/store';
+import { getAsset, deleteAsset, updateAsset } from '@/lib/store';
 import {
   calculateCurrentValue,
   formatCurrency,
@@ -12,7 +12,6 @@ import {
   Text,
   Card,
   CardHeader,
-  CardPreview,
   Button,
   ProgressBar,
 } from '@fluentui/react-components';
@@ -31,9 +30,9 @@ import {
 import { useMemo, useRef, useState, useEffect } from 'react';
 import {
   Edit24Regular,
-  Delete24Regular,
   Save24Filled,
   Dismiss24Filled,
+  Money24Regular,
 } from '@fluentui/react-icons';
 import {
   Dialog,
@@ -43,6 +42,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Label,
+  Input,
 } from '@fluentui/react-components';
 import AssetForm, { type AssetFormHandle } from '@/components/AssetForm';
 import { GooeyTitle } from '@/components/GooeyTitle';
@@ -53,7 +54,8 @@ import { useUI } from '@/components/UIContext';
 export default function AssetDetailPage() {
   const params = useParams();
   const id = params.id as string;
-  const { setPageLoading, setShowTransitionOverlay } = useUI();
+  const { setPageLoading, setShowTransitionOverlay, triggerTransition } =
+    useUI();
   const [asset, setAsset] = useState<Asset | null>(null);
   const router = useRouter();
 
@@ -62,6 +64,25 @@ export default function AssetDetailPage() {
   const [editValid, setEditValid] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentValue, setCurrentValue] = useState(0);
+
+  const [soldDialogOpen, setSoldDialogOpen] = useState(false);
+  const [soldValue, setSoldValue] = useState('');
+  const [soldDate, setSoldDate] = useState(
+    new Date().toISOString().slice(0, 10),
+  );
+
+  const handleSold = async () => {
+    if (!asset) return;
+    const updatedAsset = {
+      ...asset,
+      isSold: true,
+      soldValue: parseFloat(soldValue),
+      soldDate: soldDate,
+    };
+    await updateAsset(updatedAsset);
+    setSoldDialogOpen(false);
+    router.push('/');
+  };
 
   useEffect(() => {
     const loadAsset = async () => {
@@ -155,7 +176,7 @@ export default function AssetDetailPage() {
 
   const handleDelete = async () => {
     await deleteAsset(id);
-    router.push('/assets');
+    router.push('/');
   };
 
   if (isLoading) {
@@ -197,37 +218,10 @@ export default function AssetDetailPage() {
           <GooeyButton
             icon={<ArrowLeft24Regular />}
             label="Back"
-            onClick={() => router.back()}
+            onClick={() => triggerTransition('/')}
             style={{ width: '80px', height: '80px' }}
           />
         </GooeyButtonContainer>
-
-        <div style={{ flex: 1, marginLeft: 24, marginRight: 24 }}>
-          <GooeyTitle text={asset.name} />
-          <div style={{ marginTop: 16 }}>
-            <Text size={600} weight="bold">
-              {formatCurrency(currentValue)}
-            </Text>
-            <div style={{ marginTop: 8 }}>
-              <ProgressBar
-                value={remainingPercentage}
-                max={100}
-                color={remainingPercentage < 20 ? 'error' : 'brand'}
-              />
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  marginTop: 4,
-                }}
-              >
-                <Text size={200} style={{ color: '#888' }}>
-                  {Math.round(remainingPercentage)}% life remaining
-                </Text>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <GooeyButtonContainer>
           <Dialog
@@ -293,33 +287,85 @@ export default function AssetDetailPage() {
               </DialogBody>
             </DialogSurface>
           </Dialog>
-          <Dialog>
+          <Dialog
+            open={soldDialogOpen}
+            onOpenChange={(_, data) => setSoldDialogOpen(data.open)}
+          >
             <DialogTrigger disableButtonEnhancement>
               <GooeyButton
-                icon={<Delete24Regular />}
-                label="Delete"
+                icon={<Money24Regular />}
+                label="Sold"
+                onClick={() => setSoldDialogOpen(true)}
                 style={{ width: '80px', height: '80px' }}
               />
             </DialogTrigger>
             <DialogSurface>
               <DialogBody>
-                <DialogTitle>Delete Asset?</DialogTitle>
+                <DialogTitle>Mark Asset as Sold</DialogTitle>
                 <DialogContent>
-                  Are you sure you want to delete <strong>{asset.name}</strong>?
-                  This action cannot be undone.
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 16,
+                    }}
+                  >
+                    <Label>Sold Value</Label>
+                    <Input
+                      type="number"
+                      value={soldValue}
+                      onChange={(e, data) => setSoldValue(data.value)}
+                      contentBefore="$"
+                    />
+                    <Label>Sold Date</Label>
+                    <Input
+                      type="date"
+                      value={soldDate}
+                      onChange={(e, data) => setSoldDate(data.value)}
+                    />
+                  </div>
                 </DialogContent>
                 <DialogActions>
-                  <DialogTrigger disableButtonEnhancement>
-                    <Button appearance="secondary">Cancel</Button>
-                  </DialogTrigger>
-                  <Button appearance="primary" onClick={handleDelete}>
-                    Delete
+                  <Button
+                    appearance="secondary"
+                    onClick={() => setSoldDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button appearance="primary" onClick={handleSold}>
+                    Confirm
                   </Button>
                 </DialogActions>
               </DialogBody>
             </DialogSurface>
           </Dialog>
         </GooeyButtonContainer>
+      </div>
+
+      <GooeyTitle text={asset.name} />
+
+      <div style={{ margin: '8px 16px 32px 16px' }}>
+        <Text size={600} weight="bold">
+          {formatCurrency(currentValue)}
+        </Text>
+        <div style={{ marginTop: 8 }}>
+          <ProgressBar
+            value={remainingPercentage}
+            max={100}
+            color={remainingPercentage < 20 ? 'error' : 'brand'}
+          />
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginTop: 4,
+            }}
+          >
+            <Text size={200} style={{ color: '#888' }}>
+              {Math.round(remainingPercentage)}% life remaining
+            </Text>
+          </div>
+        </div>
       </div>
 
       {/* Details Grid */}

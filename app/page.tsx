@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
+import River from '@/components/River';
 
 export default function HomePage() {
-  redirect('/assets');
+  return <River />;
 }

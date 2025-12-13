@@ -17,7 +17,7 @@ export default function AuthPage() {
       const safe =
         requested && requested.startsWith('/') && !requested.startsWith('//')
           ? requested
-          : '/assets';
+          : '/';
       triggerTransition(safe, false, true);
     }
   }, [isAuthenticated, isLoading, searchParams, triggerTransition]);

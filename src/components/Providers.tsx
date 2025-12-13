@@ -22,7 +22,7 @@ const customDarkTheme: Theme = {
 
 function ThemedFluentProvider({ children }: { children: ReactNode }) {
   const { actualTheme } = useUI();
-  
+
   return (
     <FluentProvider
       theme={actualTheme === 'dark' ? customDarkTheme : webLightTheme}

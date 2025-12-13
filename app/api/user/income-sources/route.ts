@@ -6,7 +6,7 @@ import { prisma } from '@/lib/db';
 export async function GET(request: Request) {
   const res = NextResponse.next();
   const session = await getIronSession(request as any, res, sessionOptions);
-  
+
   if (!(session as any)?.userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { name, type, amount } = body;
+  const { name, type, amount, startDate, endDate } = body;
 
   const source = await prisma.incomeSource.create({
     data: {
@@ -35,8 +35,25 @@ export async function POST(request: Request) {
       name,
       type,
       amount: amount ? parseFloat(amount) : null,
+      startDate,
+      endDate,
     },
   });
 
   return NextResponse.json(source);
+}
+
+export async function DELETE(request: Request) {
+  const res = NextResponse.next();
+  const session = await getIronSession(request as any, res, sessionOptions);
+
+  if (!(session as any)?.userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  await prisma.incomeSource.deleteMany({
+    where: { userId: (session as any).userId },
+  });
+
+  return NextResponse.json({ success: true });
 }

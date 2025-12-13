@@ -48,6 +48,19 @@ export function calculateCurrentValue(
   return Math.round(Math.max(terminal, current) * 100) / 100;
 }
 
+export function normalizeImportedAsset(asset: any): Omit<Asset, 'id'> {
+  const { id, ...rest } = asset;
+  if (typeof rest.events === 'string') {
+    try {
+      rest.events = JSON.parse(rest.events);
+    } catch (e) {
+      console.warn('Failed to parse events for asset', asset.name, e);
+      rest.events = [];
+    }
+  }
+  return rest;
+}
+
 export function groupAssetsByTag(assets: Asset[]): Record<string, Asset[]> {
   const grouped: Record<string, Asset[]> = {};
   for (const a of assets) {

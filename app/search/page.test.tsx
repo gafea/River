@@ -28,6 +28,12 @@ vi.mock('@/lib/store', () => ({
   getAllAssets: vi.fn(),
 }));
 
+vi.mock('@/components/UIContext', () => ({
+  useUI: vi.fn(() => ({
+    triggerTransition: vi.fn(),
+  })),
+}));
+
 vi.mock('@/lib/utils', () => ({
   calculateCurrentValue: vi.fn(),
 }));

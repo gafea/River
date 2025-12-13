@@ -1,16 +1,11 @@
-/*
-  Warnings:
-
-  - You are about to drop the column `jobTitle` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the column `monthlyIncome` on the `User` table. All the data in the column will be lost.
-
-*/
 -- CreateTable
 CREATE TABLE "IncomeSource" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
     "type" TEXT NOT NULL,
     "amount" REAL,
+    "startDate" TEXT,
+    "endDate" TEXT,
     "userId" TEXT NOT NULL,
     CONSTRAINT "IncomeSource_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -30,10 +25,31 @@ CREATE TABLE "IncomeEntry" (
 -- RedefineTables
 PRAGMA defer_foreign_keys=ON;
 PRAGMA foreign_keys=OFF;
+CREATE TABLE "new_Asset" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "photoDataUrl" TEXT,
+    "purchaseValue" REAL NOT NULL,
+    "expectedLifeWeeks" INTEGER NOT NULL,
+    "purchaseDate" TEXT NOT NULL,
+    "isSold" BOOLEAN NOT NULL DEFAULT false,
+    "soldDate" TEXT,
+    "soldValue" REAL,
+    "tag" TEXT NOT NULL DEFAULT '',
+    "terminalPrice" REAL,
+    "events" TEXT,
+    "userId" TEXT NOT NULL,
+    CONSTRAINT "Asset_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+INSERT INTO "new_Asset" ("description", "events", "expectedLifeWeeks", "id", "name", "photoDataUrl", "purchaseDate", "purchaseValue", "tag", "terminalPrice", "userId") SELECT "description", "events", "expectedLifeWeeks", "id", "name", "photoDataUrl", "purchaseDate", "purchaseValue", "tag", "terminalPrice", "userId" FROM "Asset";
+DROP TABLE "Asset";
+ALTER TABLE "new_Asset" RENAME TO "Asset";
 CREATE TABLE "new_User" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "tags" TEXT
+    "tags" TEXT,
+    "hasCompletedSetup" BOOLEAN NOT NULL DEFAULT false
 );
 INSERT INTO "new_User" ("createdAt", "id", "tags") SELECT "createdAt", "id", "tags" FROM "User";
 DROP TABLE "User";

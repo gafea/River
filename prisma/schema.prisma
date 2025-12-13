@@ -30,6 +30,8 @@ model IncomeSource {
   name      String
   type      String   // "FIXED" | "DYNAMIC"
   amount    Float?   // Monthly amount for FIXED
+  startDate String?  // YYYY-MM-DD
+  endDate   String?  // YYYY-MM-DD
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   entries   IncomeEntry[]
@@ -64,6 +66,9 @@ model Asset {
   purchaseValue      Float
   expectedLifeWeeks  Int
   purchaseDate       String // ISO date
+  isSold             Boolean @default(false)
+  soldDate           String? // ISO date
+  soldValue          Float?
   tag                String @default("")
   terminalPrice      Float?
   events             String? // JSON array of AssetEvent

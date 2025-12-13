@@ -15,4 +15,16 @@ export type Asset = {
   tag: string;
   terminalPrice?: number;
   events?: AssetEvent[];
+  isSold?: boolean;
+  soldDate?: string | null;
+  soldValue?: number | null;
+};
+
+export type IncomeSource = {
+  id: string;
+  name: string;
+  type: 'FIXED' | 'DYNAMIC';
+  amount: number | null;
+  startDate?: string | null;
+  endDate?: string | null;
 };

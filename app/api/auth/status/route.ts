@@ -11,7 +11,10 @@ export async function GET(request: NextRequest) {
     try {
       const [credentialCount, user] = await Promise.all([
         prisma.credential.count({ where: { userId: session.userId } }),
-        prisma.user.findUnique({ where: { id: session.userId }, select: { hasCompletedSetup: true } }),
+        prisma.user.findUnique({
+          where: { id: session.userId },
+          select: { hasCompletedSetup: true },
+        }),
       ]);
 
       if (credentialCount > 0) {

@@ -166,25 +166,28 @@ export default function AssetCard({
             }}
           >
             <Text size={700} weight="bold">
-              {formatCurrency(currentValue)}
+              {asset.isSold
+                ? formatCurrency(asset.soldValue || 0)
+                : formatCurrency(currentValue)}
             </Text>
             <Text
               size={300}
               style={{ color: 'var(--colorNeutralForeground3)' }}
             >
-              ({formatCurrency(dailyCost)}/day)
+              {asset.isSold ? '(Sold)' : `(${formatCurrency(dailyCost)}/day)`}
             </Text>
           </div>
           <div style={{ marginBottom: 8 }}>
             <ProgressBar
-              value={valueProgressPercentage}
+              value={asset.isSold ? 0 : valueProgressPercentage}
               max={100}
               style={{ height: 6, borderRadius: 3 }}
             />
           </div>
           <Text size={200} style={{ color: 'var(--colorNeutralForeground3)' }}>
-            {Math.round(remainingPercentage)}% lifetime remaining (
-            {remainingDateText})
+            {asset.isSold
+              ? `Sold on ${asset.soldDate}`
+              : `${Math.round(remainingPercentage)}% lifetime remaining (${remainingDateText})`}
           </Text>
         </div>
       </div>
