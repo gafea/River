@@ -6,6 +6,7 @@ import {
   ReactNode,
   useCallback,
   useTransition,
+  useEffect,
 } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -23,6 +24,9 @@ interface UIContextType {
   setPageLoading: (loading: boolean) => void;
   showTransitionOverlay: boolean;
   setShowTransitionOverlay: (show: boolean) => void;
+  theme: 'light' | 'dark' | 'system';
+  setTheme: (theme: 'light' | 'dark' | 'system') => void;
+  actualTheme: 'light' | 'dark';
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
@@ -31,8 +35,33 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const [isNewAssetModalOpen, setIsNewAssetModalOpen] = useState(false);
   const [isPageLoading, setPageLoading] = useState(false);
   const [showTransitionOverlay, setShowTransitionOverlay] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
+  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('light');
   const [isNavigating, startTransition] = useTransition();
   const router = useRouter();
+
+  // Handle system theme changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
+    
+    const handler = (e: MediaQueryListEvent) => setSystemTheme(e.matches ? 'dark' : 'light');
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+
+  // Load saved theme preference
+  useEffect(() => {
+    const saved = localStorage.getItem('theme') as 'light' | 'dark' | 'system';
+    if (saved) setTheme(saved);
+  }, []);
+
+  // Save theme preference
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const actualTheme = theme === 'system' ? systemTheme : theme;
 
   const openNewAssetModal = useCallback(() => setIsNewAssetModalOpen(true), []);
   const closeNewAssetModal = useCallback(
@@ -69,6 +98,9 @@ export function UIProvider({ children }: { children: ReactNode }) {
         setPageLoading,
         showTransitionOverlay,
         setShowTransitionOverlay,
+        theme,
+        setTheme,
+        actualTheme,
       }}
     >
       {children}

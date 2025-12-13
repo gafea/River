@@ -7,7 +7,7 @@ import {
 } from '@fluentui/react-components';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
-import { UIProvider } from './UIContext';
+import { UIProvider, useUI } from './UIContext';
 
 // Custom dark theme with pure black background and #eee text
 const customDarkTheme: Theme = {
@@ -20,26 +20,23 @@ const customDarkTheme: Theme = {
   colorNeutralStroke1: '#404040', // Subtle borders
 };
 
-export default function Providers({ children }: { children: ReactNode }) {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    // Check system preference
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setIsDark(mediaQuery.matches);
-
-    // Listen for changes
-    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, []);
-
+function ThemedFluentProvider({ children }: { children: ReactNode }) {
+  const { actualTheme } = useUI();
+  
   return (
     <FluentProvider
-      theme={isDark ? customDarkTheme : webLightTheme}
+      theme={actualTheme === 'dark' ? customDarkTheme : webLightTheme}
       style={{ minHeight: '100vh' }}
     >
-      <UIProvider>{children}</UIProvider>
+      {children}
     </FluentProvider>
+  );
+}
+
+export default function Providers({ children }: { children: ReactNode }) {
+  return (
+    <UIProvider>
+      <ThemedFluentProvider>{children}</ThemedFluentProvider>
+    </UIProvider>
   );
 }

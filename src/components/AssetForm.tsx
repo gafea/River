@@ -18,7 +18,12 @@ import {
   Option,
 } from '@fluentui/react-components';
 import { useRouter } from 'next/navigation';
-import { Add24Regular, Delete24Regular } from '@fluentui/react-icons';
+import {
+  Add24Regular,
+  Delete24Regular,
+  Image24Regular,
+} from '@fluentui/react-icons';
+import { removeBackground } from '@imgly/background-removal';
 
 export type AssetFormHandle = { submit: () => Promise<void>; isValid: boolean };
 
@@ -47,6 +52,7 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
   const [photoDataUrl, setPhotoDataUrl] = useState<string | undefined>(
     undefined,
   );
+  const [processingImage, setProcessingImage] = useState(false);
   const [terminalPrice, setTerminalPrice] = useState<number>(0);
   const [events, setEvents] = useState<AssetEvent[]>([]);
   const [existingTags, setExistingTags] = useState<string[]>([]);
@@ -125,14 +131,28 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
     }
   }, [tag, isEdit, asset]);
 
-  function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setPhotoDataUrl(ev.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+
+    setProcessingImage(true);
+    try {
+      const blob = await removeBackground(file);
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setPhotoDataUrl(ev.target?.result as string);
+        setProcessingImage(false);
+      };
+      reader.readAsDataURL(blob);
+    } catch (err) {
+      console.warn('Background removal failed', err);
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setPhotoDataUrl(ev.target?.result as string);
+        setProcessingImage(false);
+      };
+      reader.readAsDataURL(file);
+    }
   }
 
   async function submit() {
@@ -226,8 +246,12 @@ export default forwardRef<AssetFormHandle, Props>(function AssetForm(
           accept="image/*"
           onChange={handlePhoto}
           style={{ display: 'block' }}
+          disabled={processingImage}
         />
-        {photoDataUrl && (
+        {processingImage && (
+          <div style={{ marginTop: 8 }}>Processing image...</div>
+        )}
+        {photoDataUrl && !processingImage && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={photoDataUrl}

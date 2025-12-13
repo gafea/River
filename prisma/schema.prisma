@@ -18,6 +18,32 @@ model User {
   credentials Credential[]
   assets      Asset[]
   tags String? // JSON string of default tags info
+  
+  incomeSources IncomeSource[]
+  incomeEntries IncomeEntry[]
+  
+  hasCompletedSetup Boolean @default(false)
+}
+
+model IncomeSource {
+  id        String   @id @default(cuid())
+  name      String
+  type      String   // "FIXED" | "DYNAMIC"
+  amount    Float?   // Monthly amount for FIXED
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries   IncomeEntry[]
+}
+
+model IncomeEntry {
+  id        String   @id @default(cuid())
+  date      String   // YYYY-MM-DD
+  amount    Float
+  description String?
+  sourceId  String?
+  source    IncomeSource? @relation(fields: [sourceId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Credential {

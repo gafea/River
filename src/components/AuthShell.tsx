@@ -37,9 +37,9 @@ export default function AuthShell({ children }: { children: ReactNode }) {
   const showNavigation = isAuthenticated && pathname !== '/auth';
 
   return (
-    <div style={{ display: 'flex' }}>
-      {showNavigation && <Navigation />}
-      <main style={{ flex: 1, overflow: 'auto' }}>{children}</main>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      {/* Navigation removed for immersive experience */}
+      <main style={{ flex: 1, position: 'relative' }}>{children}</main>
       <NewAssetModal />
       <RiverTransition />
     </div>

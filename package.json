@@ -16,6 +16,7 @@
   "dependencies": {
     "@fluentui/react-components": "^9.72.8",
     "@fluentui/react-icons": "^2.0.316",
+    "@imgly/background-removal": "^1.7.0",
     "@prisma/client": "^6.19.0",
     "@simplewebauthn/browser": "^13.2.2",
     "@simplewebauthn/server": "^13.2.2",

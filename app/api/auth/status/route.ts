@@ -9,13 +9,16 @@ export async function GET(request: NextRequest) {
 
   if (session.userId) {
     try {
-      const credentialCount = await prisma.credential.count({
-        where: { userId: session.userId },
-      });
+      const [credentialCount, user] = await Promise.all([
+        prisma.credential.count({ where: { userId: session.userId } }),
+        prisma.user.findUnique({ where: { id: session.userId }, select: { hasCompletedSetup: true } }),
+      ]);
+
       if (credentialCount > 0) {
         return NextResponse.json({
           authenticated: true,
           userId: session.userId,
+          hasCompletedSetup: user?.hasCompletedSetup ?? false,
         });
       }
       // No credentials yet -> treat as unauthenticated (registration not completed)
